@@ -47,6 +47,7 @@ class World
       road.target = @getIntersection road.target
       @addRoad road
 
+
   generateMap: (minX = -2, maxX = 2, minY = -2, maxY = 2) ->
     @clear()
     intersectionsNumber = (0.8 * (maxX - minX + 1) * (maxY - minY + 1)) | 0
@@ -82,6 +83,35 @@ class World
           previous = intersection
     null
 
+  generateMap8: ->
+    @clear()
+    coords = [[-3,0],[-1,0],[1,0],[3,0],[-1,-2],[-1,2],[1,-2],[1,2]]
+    map = {}
+    gridSize = settings.gridSize
+    step = 5 * gridSize
+    @carsNumber = 100
+    for item in coords
+      x = item[0]
+      y = item[1]
+      unless map[[x, y]]?
+        rect = new Rect step * x, step * y, gridSize, gridSize
+        intersection = new Intersection rect
+        @addIntersection map[[x, y]] = intersection
+    @addRoad new Road map[coords[0]], map[coords[1]]
+    @addRoad new Road map[coords[1]], map[coords[0]]
+    @addRoad new Road map[coords[2]], map[coords[1]]
+    @addRoad new Road map[coords[1]], map[coords[2]]
+    @addRoad new Road map[coords[2]], map[coords[3]]
+    @addRoad new Road map[coords[3]], map[coords[2]]
+    @addRoad new Road map[coords[4]], map[coords[1]]
+    @addRoad new Road map[coords[1]], map[coords[4]]
+    @addRoad new Road map[coords[5]], map[coords[1]]
+    @addRoad new Road map[coords[1]], map[coords[5]]
+    @addRoad new Road map[coords[6]], map[coords[2]]
+    @addRoad new Road map[coords[2]], map[coords[6]]
+    @addRoad new Road map[coords[7]], map[coords[2]]
+    @addRoad new Road map[coords[2]], map[coords[7]]
+    null
 
   clear: ->
     @set {}

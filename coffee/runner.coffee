@@ -59,6 +59,6 @@ experiment3 = () ->
       getParams world
     out.write(it + ' ' +  result + '\n')
 
-# experiment1()
+experiment1()
 # experiment2()
 # experiment3()

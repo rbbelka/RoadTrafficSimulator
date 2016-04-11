@@ -12,10 +12,11 @@ $ ->
   canvas = $('<canvas />', {id: 'canvas'})
   $(document.body).append(canvas)
 
+  # TODO: load map
   window.world = new World()
   world.load()
   if world.intersections.length is 0
-    world.generateMap()
+    world.generateMap8()
     world.carsNumber = 100
   window.visualizer = new Visualizer world
   visualizer.start()
@@ -26,6 +27,7 @@ $ ->
   guiWorld.add world, 'load'
   guiWorld.add world, 'clear'
   guiWorld.add world, 'generateMap'
+  guiWorld.add world, 'generateMap8'
   guiVisualizer = gui.addFolder 'visualizer'
   guiVisualizer.open()
   guiVisualizer.add(visualizer, 'running').listen()
