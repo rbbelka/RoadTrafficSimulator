@@ -1420,7 +1420,9 @@ World = (function() {
     this.roads = new Pool(Road, obj.roads);
     this.cars = new Pool(Car, obj.cars);
     this.carsNumber = 0;
-    return this.time = 0;
+    this.time = 0;
+    this.intersectionsStat = {};
+    return this.roadsStat = {};
   };
 
   World.prototype.save = function() {
@@ -1528,7 +1530,7 @@ World = (function() {
   };
 
   World.prototype.onTick = function(delta) {
-    var car, id, intersection, _ref, _ref1, _results;
+    var car, id, intersection, _ref, _ref1;
     if (delta > 1) {
       throw Error('delta > 1');
     }
@@ -1540,12 +1542,29 @@ World = (function() {
       intersection.controlSignals.onTick(delta);
     }
     _ref1 = this.cars.all();
-    _results = [];
     for (id in _ref1) {
       car = _ref1[id];
       car.move(delta);
       if (!car.alive) {
-        _results.push(this.removeCar(car));
+        this.removeCar(car);
+      }
+    }
+    return this.refreshStat();
+  };
+
+  World.prototype.refreshStat = function() {
+    var car, id, intersection, _ref, _ref1, _results;
+    _ref = this.intersections.all();
+    for (id in _ref) {
+      intersection = _ref[id];
+      this.intersectionsStat[id] = 0;
+    }
+    _ref1 = this.cars.all();
+    _results = [];
+    for (id in _ref1) {
+      car = _ref1[id];
+      if (car.trajectory.isChangingLanes === false) {
+        _results.push(this.intersectionsStat[car.trajectory.nextIntersection.id] += 1);
       } else {
         _results.push(void 0);
       }
@@ -2278,7 +2297,7 @@ Visualizer = (function() {
   };
 
   Visualizer.prototype.drawSignals = function(road) {
-    var center, flipInterval, intersection, lights, lightsColors, phaseOffset, segment, sideId;
+    var center, flipInterval, intersection, lights, lightsColors, numOfCars, phaseOffset, segment, sideId;
     lightsColors = [settings.colors.redLight, settings.colors.greenLight];
     intersection = road.target;
     segment = road.targetSide;
@@ -2308,7 +2327,8 @@ Visualizer = (function() {
       center = intersection.rect.center();
       flipInterval = Math.round(intersection.controlSignals.flipInterval * 100) / 100;
       phaseOffset = Math.round(intersection.controlSignals.phaseOffset * 100) / 100;
-      this.ctx.fillText(flipInterval + ' ' + phaseOffset, center.x, center.y);
+      numOfCars = this.world.intersectionsStat[intersection.id];
+      this.ctx.fillText(numOfCars, center.x, center.y);
       return this.ctx.restore();
     }
   };

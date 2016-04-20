@@ -27,6 +27,9 @@ class World
     @cars = new Pool Car, obj.cars
     @carsNumber = 0
     @time = 0
+    # arrays for some statistics
+    @intersectionsStat = {}
+    @roadsStat = {}
 
   save: ->
     data = _.extend {}, this
@@ -41,6 +44,7 @@ class World
     @carsNumber = data.carsNumber or 0
     for id, intersection of data.intersections
       @addIntersection Intersection.copy intersection
+      #console.log(intersection.id)
     for id, road of data.roads
       road = Road.copy road
       road.source = @getIntersection road.source
@@ -95,6 +99,14 @@ class World
     for id, car of @cars.all()
       car.move delta
       @removeCar car unless car.alive
+    @refreshStat()
+
+  refreshStat: ->
+    for id, intersection of @intersections.all()
+      @intersectionsStat[id] = 0
+    for id, car of @cars.all()
+      if car.trajectory.isChangingLanes == false
+        @intersectionsStat[car.trajectory.nextIntersection.id] += 1
 
   refreshCars: ->
     @addRandomCar() if @cars.length < @carsNumber
