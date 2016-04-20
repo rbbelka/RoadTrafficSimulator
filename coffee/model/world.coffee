@@ -125,7 +125,10 @@ class World
     @intersections.get id
 
   addRandomCar: ->
-    road = _.sample @roads.all()
+    # road = _.sample @roads.all()
+    good_intersection = _.sample( _.filter( @intersections.all() , (i) -> i.roads.length == 1 ) )
+
+    road = _.sample( good_intersection.roads )
     if road?
       lane = _.sample road.lanes
       @addCar new Car lane if lane?

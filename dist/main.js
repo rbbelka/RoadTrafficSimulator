@@ -401,7 +401,7 @@ Trajectory = require('./trajectory');
 Car = (function() {
   function Car(lane, position) {
     this.id = _.uniqueId('car');
-    this.color = (300 + 240 * random() | 0) % 360;
+    this.color = 255;
     this._speed = 0;
     this.width = 1.7;
     this.length = 3 + 2 * random();
@@ -1594,8 +1594,11 @@ World = (function() {
   };
 
   World.prototype.addRandomCar = function() {
-    var lane, road;
-    road = _.sample(this.roads.all());
+    var good_intersection, lane, road;
+    good_intersection = _.sample(_.filter(this.intersections.all(), function(i) {
+      return i.roads.length === 1;
+    }));
+    road = _.sample(good_intersection.roads);
     if (road != null) {
       lane = _.sample(road.lanes);
       if (lane != null) {
@@ -2344,7 +2347,7 @@ Visualizer = (function() {
   };
 
   Visualizer.prototype.drawCar = function(car) {
-    var angle, boundRect, center, curve, l, rect, style, _ref;
+    var angle, boundRect, center, curve, l, rect, s, style, _ref;
     angle = car.direction;
     center = car.coords;
     rect = new Rect(0, 0, 1.1 * car.length, 1.7 * car.width);
@@ -2359,10 +2362,11 @@ Visualizer = (function() {
     this.graphics.fillRect(boundRect, style);
     this.graphics.restore();
     if (this.debug) {
+      s = Math.round(car.speed * 10) / 10;
       this.ctx.save();
       this.ctx.fillStyle = "black";
       this.ctx.font = "1px Arial";
-      this.ctx.fillText(car.id, center.x, center.y);
+      this.ctx.fillText(s, center.x, center.y);
       if ((curve = (_ref = car.trajectory.temp) != null ? _ref.lane : void 0) != null) {
         this.graphics.drawCurve(curve, 0.1, 'red');
       }
@@ -8873,12 +8877,12 @@ dat.utils.common),
 dat.dom.dom,
 dat.utils.common);
 },{}],30:[function(require,module,exports){
-/*! Copyright (c) 2013 Brandon Aaron (http://brandon.aaron.sh)
- * Licensed under the MIT License (LICENSE.txt).
+/*!
+ * jQuery Mousewheel 3.1.13
  *
- * Version: 3.1.12
- *
- * Requires: jQuery 1.2.2+
+ * Copyright jQuery Foundation and other contributors
+ * Released under the MIT license
+ * http://jquery.org/license
  */
 
 (function (factory) {
@@ -9097,7 +9101,7 @@ dat.utils.common);
 
 },{}],31:[function(require,module,exports){
 /*!
- * jQuery JavaScript Library v2.1.3
+ * jQuery JavaScript Library v2.1.4
  * http://jquery.com/
  *
  * Includes Sizzle.js
@@ -9107,7 +9111,7 @@ dat.utils.common);
  * Released under the MIT license
  * http://jquery.org/license
  *
- * Date: 2014-12-18T15:11Z
+ * Date: 2015-04-28T16:01Z
  */
 
 (function( global, factory ) {
@@ -9165,7 +9169,7 @@ var
 	// Use the correct document accordingly with window argument (sandbox)
 	document = window.document,
 
-	version = "2.1.3",
+	version = "2.1.4",
 
 	// Define a local copy of jQuery
 	jQuery = function( selector, context ) {
@@ -9629,7 +9633,12 @@ jQuery.each("Boolean Number String Function Array Date RegExp Object Error".spli
 });
 
 function isArraylike( obj ) {
-	var length = obj.length,
+
+	// Support: iOS 8.2 (not reproducible in simulator)
+	// `in` check used to prevent JIT error (gh-2145)
+	// hasOwn isn't used here due to false negatives
+	// regarding Nodelist length in IE
+	var length = "length" in obj && obj.length,
 		type = jQuery.type( obj );
 
 	if ( type === "function" || jQuery.isWindow( obj ) ) {

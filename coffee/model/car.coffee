@@ -8,7 +8,7 @@ Trajectory = require './trajectory'
 class Car
   constructor: (lane, position) ->
     @id = _.uniqueId 'car'
-    @color = (300 + 240 * random() | 0) % 360
+    @color = 255
     @_speed = 0
     @width = 1.7
     @length = 3 + 2 * random()

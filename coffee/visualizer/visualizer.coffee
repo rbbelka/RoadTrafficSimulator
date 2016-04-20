@@ -137,10 +137,12 @@ class Visualizer
     @graphics.fillRect boundRect, style
     @graphics.restore()
     if @debug
+      s = Math.round(car.speed*10)/10;
+
       @ctx.save()
       @ctx.fillStyle = "black"
       @ctx.font = "1px Arial"
-      @ctx.fillText car.id, center.x, center.y
+      @ctx.fillText s, center.x, center.y
 
       if (curve = car.trajectory.temp?.lane)?
         @graphics.drawCurve curve, 0.1, 'red'
