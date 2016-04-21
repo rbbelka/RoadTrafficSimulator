@@ -1413,6 +1413,7 @@ World = (function() {
   });
 
   World.prototype.set = function(obj) {
+    var car, i, id, _ref, _ref1, _results;
     if (obj == null) {
       obj = {};
     }
@@ -1422,7 +1423,26 @@ World = (function() {
     this.carsNumber = 0;
     this.time = 0;
     this.intersectionsStat = {};
-    return this.roadsStat = {};
+    this.intersectionTotalNumberOfCars = {};
+    this.intersectionAvgWaitingTime = {};
+    this.carsWaitTime = {};
+    this.carsCurTarget = {};
+    this.carStoped = {};
+    _ref = this.cars.all();
+    for (id in _ref) {
+      car = _ref[id];
+      this.carsWaitTime[id] = 0.0;
+      this.carsCurTarget[id] = car.trajectory.nextIntersection.id;
+      this.carStoped[id] = false;
+    }
+    _ref1 = this.intersections.all();
+    _results = [];
+    for (id in _ref1) {
+      i = _ref1[id];
+      this.intersectionTotalNumberOfCars[id] = 0.0;
+      _results.push(this.intersectionAvgWaitingTime[id] = 0.0);
+    }
+    return _results;
   };
 
   World.prototype.save = function() {
@@ -1433,7 +1453,7 @@ World = (function() {
   };
 
   World.prototype.load = function(data) {
-    var id, intersection, road, _ref, _ref1, _results;
+    var i, id, intersection, road, _ref, _ref1, _ref2, _results;
     data = data || localStorage.world;
     data = data && JSON.parse(data);
     if (data == null) {
@@ -1447,13 +1467,19 @@ World = (function() {
       this.addIntersection(Intersection.copy(intersection));
     }
     _ref1 = data.roads;
-    _results = [];
     for (id in _ref1) {
       road = _ref1[id];
       road = Road.copy(road);
       road.source = this.getIntersection(road.source);
       road.target = this.getIntersection(road.target);
-      _results.push(this.addRoad(road));
+      this.addRoad(road);
+    }
+    _ref2 = this.intersections.all();
+    _results = [];
+    for (id in _ref2) {
+      i = _ref2[id];
+      this.intersectionTotalNumberOfCars[id] = 0.0;
+      _results.push(this.intersectionAvgWaitingTime[id] = 0.0);
     }
     return _results;
   };
@@ -1530,11 +1556,12 @@ World = (function() {
   };
 
   World.prototype.onTick = function(delta) {
-    var car, id, intersection, _ref, _ref1;
+    var car, id, intersection, _ref, _ref1, _results;
     if (delta > 1) {
       throw Error('delta > 1');
     }
     this.time += delta;
+    this.refreshStat(delta);
     this.refreshCars();
     _ref = this.intersections.all();
     for (id in _ref) {
@@ -1542,18 +1569,21 @@ World = (function() {
       intersection.controlSignals.onTick(delta);
     }
     _ref1 = this.cars.all();
+    _results = [];
     for (id in _ref1) {
       car = _ref1[id];
       car.move(delta);
       if (!car.alive) {
-        this.removeCar(car);
+        _results.push(this.removeCar(car));
+      } else {
+        _results.push(void 0);
       }
     }
-    return this.refreshStat();
+    return _results;
   };
 
-  World.prototype.refreshStat = function() {
-    var car, id, intersection, _ref, _ref1, _results;
+  World.prototype.refreshStat = function(delta) {
+    var car, id, intersection, n, newTarget, oldTarget, s, _ref, _ref1, _results;
     _ref = this.intersections.all();
     for (id in _ref) {
       intersection = _ref[id];
@@ -1564,7 +1594,26 @@ World = (function() {
     for (id in _ref1) {
       car = _ref1[id];
       if (car.trajectory.isChangingLanes === false) {
-        _results.push(this.intersectionsStat[car.trajectory.nextIntersection.id] += 1);
+        newTarget = car.trajectory.nextIntersection.id;
+        oldTarget = this.carsCurTarget[id];
+        this.intersectionsStat[newTarget] += 1;
+        s = Math.round(car.speed * 10) / 10;
+        if (s === 0) {
+          this.carStoped[id] = true;
+        }
+        if (this.carStoped[id] === true) {
+          this.carsWaitTime[id] += delta;
+        }
+        if (oldTarget !== newTarget) {
+          this.intersectionTotalNumberOfCars[oldTarget] += 1.0;
+          n = this.intersectionTotalNumberOfCars[oldTarget];
+          this.intersectionAvgWaitingTime[oldTarget] = 1.0 / n * (this.carsWaitTime[id] + (n - 1) * this.intersectionAvgWaitingTime[oldTarget]);
+          this.carsWaitTime[id] = 0.0;
+          this.carsCurTarget[id] = newTarget;
+          _results.push(this.carStoped[id] = false);
+        } else {
+          _results.push(void 0);
+        }
       } else {
         _results.push(void 0);
       }
@@ -1593,7 +1642,10 @@ World = (function() {
   };
 
   World.prototype.addCar = function(car) {
-    return this.cars.put(car);
+    this.cars.put(car);
+    this.carsWaitTime[car.id] = 0;
+    this.carStoped[car.id] = false;
+    return this.carsCurTarget[car.id] = car.trajectory.nextIntersection.id;
   };
 
   World.prototype.getCar = function(id) {
@@ -2297,7 +2349,7 @@ Visualizer = (function() {
   };
 
   Visualizer.prototype.drawSignals = function(road) {
-    var center, flipInterval, intersection, lights, lightsColors, numOfCars, phaseOffset, segment, sideId;
+    var avgWaitingTime, center, flipInterval, intersection, lights, lightsColors, numOfCars, phaseOffset, segment, sideId, totalNumOfCars;
     lightsColors = [settings.colors.redLight, settings.colors.greenLight];
     intersection = road.target;
     segment = road.targetSide;
@@ -2328,7 +2380,11 @@ Visualizer = (function() {
       flipInterval = Math.round(intersection.controlSignals.flipInterval * 100) / 100;
       phaseOffset = Math.round(intersection.controlSignals.phaseOffset * 100) / 100;
       numOfCars = this.world.intersectionsStat[intersection.id];
+      totalNumOfCars = this.world.intersectionTotalNumberOfCars[intersection.id];
+      avgWaitingTime = Math.round(this.world.intersectionAvgWaitingTime[intersection.id] * 100) / 100;
       this.ctx.fillText(numOfCars, center.x, center.y);
+      this.ctx.fillText(totalNumOfCars, center.x, center.y + 1);
+      this.ctx.fillText(avgWaitingTime, center.x, center.y + 2);
       return this.ctx.restore();
     }
   };
@@ -2367,7 +2423,7 @@ Visualizer = (function() {
   };
 
   Visualizer.prototype.drawCar = function(car) {
-    var angle, boundRect, center, curve, l, rect, s, style, _ref;
+    var angle, boundRect, center, curve, l, rect, s, style, wt, _ref;
     angle = car.direction;
     center = car.coords;
     rect = new Rect(0, 0, 1.1 * car.length, 1.7 * car.width);
@@ -2383,10 +2439,12 @@ Visualizer = (function() {
     this.graphics.restore();
     if (this.debug) {
       s = Math.round(car.speed * 10) / 10;
+      wt = Math.round(this.world.carsWaitTime[car.id] * 100) / 100;
       this.ctx.save();
       this.ctx.fillStyle = "black";
       this.ctx.font = "1px Arial";
       this.ctx.fillText(s, center.x, center.y);
+      this.ctx.fillText(wt, center.x, center.y + 1);
       if ((curve = (_ref = car.trajectory.temp) != null ? _ref.lane : void 0) != null) {
         this.graphics.drawCurve(curve, 0.1, 'red');
       }

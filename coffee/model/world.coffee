@@ -29,7 +29,19 @@ class World
     @time = 0
     # arrays for some statistics
     @intersectionsStat = {}
-    @roadsStat = {}
+    @intersectionTotalNumberOfCars = {} # total number of cars which passed through intersection
+    @intersectionAvgWaitingTime = {}    # average waiting time at intersection
+    @carsWaitTime = {}                  # current waiting time of car at specific intersection
+    @carsCurTarget = {}                 # target-intersection
+    @carStoped = {}                     # true - if car currently waiting at intersection
+    # initial statistics
+    for id, car of @cars.all()
+      @carsWaitTime[id] = 0.0
+      @carsCurTarget[id] = car.trajectory.nextIntersection.id
+      @carStoped[id] = false
+    for id, i of @intersections.all()
+      @intersectionTotalNumberOfCars[id] = 0.0
+      @intersectionAvgWaitingTime[id] = 0.0
 
   save: ->
     data = _.extend {}, this
@@ -50,6 +62,10 @@ class World
       road.source = @getIntersection road.source
       road.target = @getIntersection road.target
       @addRoad road
+    # initial statistics
+    for id, i of @intersections.all()
+      @intersectionTotalNumberOfCars[id] = 0.0
+      @intersectionAvgWaitingTime[id] = 0.0
 
   generateMap: (minX = -2, maxX = 2, minY = -2, maxY = 2) ->
     @clear()
@@ -93,20 +109,41 @@ class World
   onTick: (delta) =>
     throw Error 'delta > 1' if delta > 1
     @time += delta
+    @refreshStat(delta)
     @refreshCars()
     for id, intersection of @intersections.all()
       intersection.controlSignals.onTick delta
     for id, car of @cars.all()
       car.move delta
       @removeCar car unless car.alive
-    @refreshStat()
 
-  refreshStat: ->
+  refreshStat: (delta) ->
     for id, intersection of @intersections.all()
       @intersectionsStat[id] = 0
     for id, car of @cars.all()
       if car.trajectory.isChangingLanes == false
-        @intersectionsStat[car.trajectory.nextIntersection.id] += 1
+        newTarget = car.trajectory.nextIntersection.id
+        oldTarget = @carsCurTarget[id]
+
+        @intersectionsStat[newTarget] += 1
+
+        s = Math.round(car.speed*10)/10
+        # is s = 0 => car has stopped
+        if s == 0
+          @carStoped[id] = true
+        # car is waiting in lane before intersection
+        if @carStoped[id] == true
+          @carsWaitTime[id] += delta
+
+        if oldTarget != newTarget
+          @intersectionTotalNumberOfCars[oldTarget] += 1.0
+          n = @intersectionTotalNumberOfCars[oldTarget]
+          @intersectionAvgWaitingTime[oldTarget] = 1.0 / n * (@carsWaitTime[id] + (n-1) * @intersectionAvgWaitingTime[oldTarget])
+
+          @carsWaitTime[id] = 0.0
+          @carsCurTarget[id] = newTarget
+          @carStoped[id] = false
+
 
   refreshCars: ->
     @addRandomCar() if @cars.length < @carsNumber
@@ -123,6 +160,9 @@ class World
 
   addCar: (car) ->
     @cars.put car
+    @carsWaitTime[car.id] = 0
+    @carStoped[car.id] = false
+    @carsCurTarget[car.id] = car.trajectory.nextIntersection.id
 
   getCar: (id) ->
     @cars.get(id)

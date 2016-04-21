@@ -87,8 +87,12 @@ class Visualizer
       flipInterval = Math.round(intersection.controlSignals.flipInterval * 100) / 100
       phaseOffset = Math.round(intersection.controlSignals.phaseOffset * 100) / 100
       numOfCars = @world.intersectionsStat[intersection.id]
+      totalNumOfCars = @world.intersectionTotalNumberOfCars[intersection.id]
+      avgWaitingTime = Math.round(@world.intersectionAvgWaitingTime[intersection.id]*100)/100
       #@ctx.fillText flipInterval + ' ' + phaseOffset, center.x, center.y
       @ctx.fillText numOfCars, center.x, center.y
+      @ctx.fillText totalNumOfCars, center.x, center.y+1
+      @ctx.fillText avgWaitingTime, center.x, center.y+2
       @ctx.restore()
 
   drawRoad: (road, alpha) ->
@@ -140,11 +144,13 @@ class Visualizer
     @graphics.restore()
     if @debug
       s = Math.round(car.speed*10)/10;
+      wt = Math.round(@world.carsWaitTime[car.id] * 100)/100
 
       @ctx.save()
       @ctx.fillStyle = "black"
       @ctx.font = "1px Arial"
       @ctx.fillText s, center.x, center.y
+      @ctx.fillText wt, center.x, center.y+1
 
       if (curve = car.trajectory.temp?.lane)?
         @graphics.drawCurve curve, 0.1, 'red'
