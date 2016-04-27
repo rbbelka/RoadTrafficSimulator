@@ -20,6 +20,14 @@ class World
       return 0 if speeds.length is 0
       return (_.reduce speeds, (a, b) -> a + b) / speeds.length
 
+  @property 'avgCarsSpeed',
+    get: ->
+      sumRemoved = _.reduce @carsAvgSpeed, ((a, b) -> a + b), 0
+      stayed = _.map @cars.all(), (car) -> car.avgSpeed
+      sumStayed = _.reduce stayed, ((a, b) -> a + b), 0
+      return 0 if (@carsAvgSpeed.length + stayed.length) is 0
+      return (sumRemoved + sumStayed) / (@carsAvgSpeed.length + stayed.length)
+
   set: (obj) ->
     obj ?= {}
     @intersections = new Pool Intersection, obj.intersections
@@ -27,6 +35,7 @@ class World
     @cars = new Pool Car, obj.cars
     @carsNumber = 0
     @time = 0
+    @carsAvgSpeed = []
 
   save: ->
     data = _.extend {}, this
@@ -97,20 +106,41 @@ class World
         rect = new Rect step * x, step * y, gridSize, gridSize
         intersection = new Intersection rect
         @addIntersection map[[x, y]] = intersection
-    @addRoad new Road map[coords[0]], map[coords[1]]
-    @addRoad new Road map[coords[1]], map[coords[0]]
-    @addRoad new Road map[coords[2]], map[coords[1]]
-    @addRoad new Road map[coords[1]], map[coords[2]]
-    @addRoad new Road map[coords[2]], map[coords[3]]
-    @addRoad new Road map[coords[3]], map[coords[2]]
-    @addRoad new Road map[coords[4]], map[coords[1]]
-    @addRoad new Road map[coords[1]], map[coords[4]]
-    @addRoad new Road map[coords[5]], map[coords[1]]
-    @addRoad new Road map[coords[1]], map[coords[5]]
-    @addRoad new Road map[coords[6]], map[coords[2]]
-    @addRoad new Road map[coords[2]], map[coords[6]]
-    @addRoad new Road map[coords[7]], map[coords[2]]
-    @addRoad new Road map[coords[2]], map[coords[7]]
+    @addTwoNewRoads 0, 1, map, coords
+    @addTwoNewRoads 2, 1, map, coords
+    @addTwoNewRoads 2, 3, map, coords
+    @addTwoNewRoads 4, 1, map, coords
+    @addTwoNewRoads 5, 1, map, coords
+    @addTwoNewRoads 6, 2, map, coords
+    @addTwoNewRoads 7, 2, map, coords
+    null
+
+  generateMap12: ->
+    @clear()
+    coords = [[-3,0],[-1,0],[1,0],[3,0],[-3,2],[-1,2],[1,2],[3,2],[-1,4],[1,4],[-1,-2],[-1,2]]
+    map = {}
+    gridSize = settings.gridSize
+    step = 5 * gridSize
+    @carsNumber = 100
+    for item in coords
+      x = item[0]
+      y = item[1]
+      unless map[[x, y]]?
+        rect = new Rect step * x, step * y, gridSize, gridSize
+        intersection = new Intersection rect
+        @addIntersection map[[x, y]] = intersection
+    @addTwoNewRoads 0, 1, map, coords
+    @addTwoNewRoads 1, 2, map, coords
+    @addTwoNewRoads 2, 3, map, coords
+    @addTwoNewRoads 4, 5, map, coords
+    @addTwoNewRoads 5, 6, map, coords
+    @addTwoNewRoads 6, 7, map, coords
+    @addTwoNewRoads 10, 5, map, coords
+    @addTwoNewRoads 5, 1, map, coords
+    @addTwoNewRoads 1, 8, map, coords
+    @addTwoNewRoads 6, 11, map, coords
+    @addTwoNewRoads 6, 2, map, coords
+    @addTwoNewRoads 2, 9, map, coords
     null
 
   clear: ->
@@ -124,11 +154,17 @@ class World
       intersection.controlSignals.onTick delta
     for id, car of @cars.all()
       car.move delta
+      car.avgSpeed = car.speed    #recount avg_speed
       @removeCar car unless car.alive
 
   refreshCars: ->
     @addRandomCar() if @cars.length < @carsNumber
     @removeRandomCar() if @cars.length > @carsNumber
+
+  addTwoNewRoads: (from, to, map, coords) ->
+    @addRoad new Road map[coords[from]], map[coords[to]]
+    @addRoad new Road map[coords[to]], map[coords[from]]
+    null
 
   addRoad: (road) ->
     @roads.put road
@@ -146,6 +182,8 @@ class World
     @cars.get(id)
 
   removeCar: (car) ->
+    @carsAvgSpeed.push car.avgSpeed
+#    console.log car.avgSpeed
     @cars.pop car
 
   addIntersection: (intersection) ->

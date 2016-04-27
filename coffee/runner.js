@@ -55,7 +55,7 @@
   experiment1 = function() {
     var j, len, multiplier, out, ref, results1;
     out = fs.createWriteStream('./experiments/1.data');
-    out.write('multiplier avg_speed\n');
+    out.write('multiplier avgSpeed\n');
     ref = [0.0001, 0.01, 0.02, 0.05, 0.1, 0.25, 0.5, 0.75, 1, 2, 3, 4, 5];
     results1 = [];
     for (j = 0, len = ref.length; j < len; j++) {
@@ -80,7 +80,7 @@
   experiment2 = function() {
     var it, j, out, result, results1;
     out = fs.createWriteStream('./experiments/2.data');
-    out.write('it avg_speed\n');
+    out.write('it avgSpeed\n');
     results1 = [];
     for (it = j = 0; j <= 9; it = ++j) {
       result = measureAverageSpeed(function(world) {
@@ -100,7 +100,7 @@
   experiment3 = function() {
     var it, j, out, result, results1;
     out = fs.createWriteStream('./experiments/3.data');
-    out.write('it avg_speed\n');
+    out.write('it avgSpeed\n');
     results1 = [];
     for (it = j = 0; j <= 10; it = ++j) {
       result = measureAverageSpeed(function(world) {

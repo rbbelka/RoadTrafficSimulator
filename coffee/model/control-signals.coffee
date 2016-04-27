@@ -36,8 +36,8 @@ class ControlSignals
   @STATE = [RED: 0, GREEN: 1]
 
   @property 'flipInterval',
-    # get: -> 0.025 * @flipMultiplier * settings.lightsFlipInterval
-    get: -> (0.1 + 0.05 * @flipMultiplier) * settings.lightsFlipInterval
+    get: ->  @flipMultiplier * settings.lightsFlipInterval
+    # get: -> (0.1 + 0.05 * @flipMultiplier) * settings.lightsFlipInterval
 
   _decode: (str) ->
     state = [0, 0, 0]

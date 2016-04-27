@@ -20,6 +20,8 @@ class Car
     @trajectory = new Trajectory this, lane, position
     @alive = true
     @preferedLane = null
+    @_avgSpeed = 0
+    @measures = 0
 
   @property 'coords',
     get: -> @trajectory.coords
@@ -30,6 +32,14 @@ class Car
       speed = 0 if speed < 0
       speed = @maxSpeed if speed > @maxSpeed
       @_speed = speed
+
+# avegare speed counts as (a1+a2+...+an'+an)/n= (avg(n')*n'+an)/n
+  @property 'avgSpeed',
+    get: -> @_avgSpeed
+    set: (speed) ->
+      speed = (@_avgSpeed * @measures + speed) / (@measures + 1)
+      @_avgSpeed = speed
+      @measures += 1
 
   @property 'direction',
     get: -> @trajectory.direction

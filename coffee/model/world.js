@@ -43,6 +43,25 @@
       }
     });
 
+    World.property('avgCarsSpeed', {
+      get: function() {
+        var stayed, sumRemoved, sumStayed;
+        sumRemoved = _.reduce(this.carsAvgSpeed, (function(a, b) {
+          return a + b;
+        }), 0);
+        stayed = _.map(this.cars.all(), function(car) {
+          return car.avgSpeed;
+        });
+        sumStayed = _.reduce(stayed, (function(a, b) {
+          return a + b;
+        }), 0);
+        if ((this.carsAvgSpeed.length + stayed.length) === 0) {
+          return 0;
+        }
+        return (sumRemoved + sumStayed) / (this.carsAvgSpeed.length + stayed.length);
+      }
+    });
+
     World.prototype.set = function(obj) {
       if (obj == null) {
         obj = {};
@@ -51,7 +70,8 @@
       this.roads = new Pool(Road, obj.roads);
       this.cars = new Pool(Car, obj.cars);
       this.carsNumber = 0;
-      return this.time = 0;
+      this.time = 0;
+      return this.carsAvgSpeed = [];
     };
 
     World.prototype.save = function() {
@@ -172,20 +192,46 @@
           this.addIntersection(map[[x, y]] = intersection);
         }
       }
-      this.addRoad(new Road(map[coords[0]], map[coords[1]]));
-      this.addRoad(new Road(map[coords[1]], map[coords[0]]));
-      this.addRoad(new Road(map[coords[2]], map[coords[1]]));
-      this.addRoad(new Road(map[coords[1]], map[coords[2]]));
-      this.addRoad(new Road(map[coords[2]], map[coords[3]]));
-      this.addRoad(new Road(map[coords[3]], map[coords[2]]));
-      this.addRoad(new Road(map[coords[4]], map[coords[1]]));
-      this.addRoad(new Road(map[coords[1]], map[coords[4]]));
-      this.addRoad(new Road(map[coords[5]], map[coords[1]]));
-      this.addRoad(new Road(map[coords[1]], map[coords[5]]));
-      this.addRoad(new Road(map[coords[6]], map[coords[2]]));
-      this.addRoad(new Road(map[coords[2]], map[coords[6]]));
-      this.addRoad(new Road(map[coords[7]], map[coords[2]]));
-      this.addRoad(new Road(map[coords[2]], map[coords[7]]));
+      this.addTwoNewRoads(0, 1, map, coords);
+      this.addTwoNewRoads(2, 1, map, coords);
+      this.addTwoNewRoads(2, 3, map, coords);
+      this.addTwoNewRoads(4, 1, map, coords);
+      this.addTwoNewRoads(5, 1, map, coords);
+      this.addTwoNewRoads(6, 2, map, coords);
+      this.addTwoNewRoads(7, 2, map, coords);
+      return null;
+    };
+
+    World.prototype.generateMap12 = function() {
+      var coords, gridSize, i, intersection, item, len, map, rect, step, x, y;
+      this.clear();
+      coords = [[-3, 0], [-1, 0], [1, 0], [3, 0], [-3, 2], [-1, 2], [1, 2], [3, 2], [-1, 4], [1, 4], [-1, -2], [-1, 2]];
+      map = {};
+      gridSize = settings.gridSize;
+      step = 5 * gridSize;
+      this.carsNumber = 100;
+      for (i = 0, len = coords.length; i < len; i++) {
+        item = coords[i];
+        x = item[0];
+        y = item[1];
+        if (map[[x, y]] == null) {
+          rect = new Rect(step * x, step * y, gridSize, gridSize);
+          intersection = new Intersection(rect);
+          this.addIntersection(map[[x, y]] = intersection);
+        }
+      }
+      this.addTwoNewRoads(0, 1, map, coords);
+      this.addTwoNewRoads(1, 2, map, coords);
+      this.addTwoNewRoads(2, 3, map, coords);
+      this.addTwoNewRoads(4, 5, map, coords);
+      this.addTwoNewRoads(5, 6, map, coords);
+      this.addTwoNewRoads(6, 7, map, coords);
+      this.addTwoNewRoads(10, 5, map, coords);
+      this.addTwoNewRoads(5, 1, map, coords);
+      this.addTwoNewRoads(1, 8, map, coords);
+      this.addTwoNewRoads(6, 11, map, coords);
+      this.addTwoNewRoads(6, 2, map, coords);
+      this.addTwoNewRoads(2, 9, map, coords);
       return null;
     };
 
@@ -210,6 +256,7 @@
       for (id in ref1) {
         car = ref1[id];
         car.move(delta);
+        car.avgSpeed = car.speed;
         if (!car.alive) {
           results.push(this.removeCar(car));
         } else {
@@ -226,6 +273,12 @@
       if (this.cars.length > this.carsNumber) {
         return this.removeRandomCar();
       }
+    };
+
+    World.prototype.addTwoNewRoads = function(from, to, map, coords) {
+      this.addRoad(new Road(map[coords[from]], map[coords[to]]));
+      this.addRoad(new Road(map[coords[to]], map[coords[from]]));
+      return null;
     };
 
     World.prototype.addRoad = function(road) {
@@ -248,6 +301,7 @@
     };
 
     World.prototype.removeCar = function(car) {
+      this.carsAvgSpeed.push(car.avgSpeed);
       return this.cars.pop(car);
     };
 

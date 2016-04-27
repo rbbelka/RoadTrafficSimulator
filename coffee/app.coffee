@@ -28,6 +28,7 @@ $ ->
   guiWorld.add world, 'clear'
   guiWorld.add world, 'generateMap'
   guiWorld.add world, 'generateMap8'
+  guiWorld.add world, 'generateMap12'
   guiVisualizer = gui.addFolder 'visualizer'
   guiVisualizer.open()
   guiVisualizer.add(visualizer, 'running').listen()

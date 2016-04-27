@@ -53,7 +53,7 @@
 
     ControlSignals.property('flipInterval', {
       get: function() {
-        return (0.1 + 0.05 * this.flipMultiplier) * settings.lightsFlipInterval;
+        return this.flipMultiplier * settings.lightsFlipInterval;
       }
     });
 

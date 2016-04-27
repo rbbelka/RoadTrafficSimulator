@@ -32,7 +32,7 @@ settings.lightsFlipInterval = 160
 
 experiment1 = () ->
   out = fs.createWriteStream './experiments/1.data'
-  out.write 'multiplier avg_speed\n'
+  out.write 'multiplier avgSpeed\n'
   for multiplier in [0.0001, 0.01, 0.02, 0.05, 0.1, 0.25, 0.5, 0.75, 1, 2, 3, 4, 5]
     do (multiplier) ->
       result = measureAverageSpeed (world) ->
@@ -42,7 +42,7 @@ experiment1 = () ->
 
 experiment2 = () ->
   out = fs.createWriteStream './experiments/2.data'
-  out.write 'it avg_speed\n'
+  out.write 'it avgSpeed\n'
   for it in [0..9]
     result = measureAverageSpeed (world) ->
       i.controlSignals.flipMultiplier = Math.random() for id, i of world.intersections.all()
@@ -51,7 +51,7 @@ experiment2 = () ->
 
 experiment3 = () ->
   out = fs.createWriteStream './experiments/3.data'
-  out.write 'it avg_speed\n'
+  out.write 'it avgSpeed\n'
   for it in [0..10]
     result = measureAverageSpeed (world) ->
       i.controlSignals.flipMultiplier = 1 for id, i of world.intersections.all()
