@@ -1454,31 +1454,36 @@ World = (function() {
   };
 
   World.prototype.save = function() {
-    var data, i, id, _i, _len, _ref, _ref1;
-    _ref = this.intersections.all();
-    for (id in _ref) {
-      i = _ref[id];
-      i.lambda = 0;
-      i.controlSignals.delayMultiplier = [1, 2, 3, 4];
-    }
-    _ref1 = this.goodIntersections;
-    for (_i = 0, _len = _ref1.length; _i < _len; _i++) {
-      i = _ref1[_i];
-      i.lambda = _.sample(_.range(10));
-    }
+    var data;
     data = _.extend({}, this);
     delete data.cars;
     localStorage.world = JSON.stringify(data);
-    return console.log(JSON.stringify(data));
+    console.log(JSON.stringify(data));
+    return $.post('http://localhost:3000/upload', {
+      'data': JSON.stringify(data)
+    });
   };
 
   World.prototype.load = function(data) {
+    var a, received;
+    received = false;
+    a = 0;
+    return $.ajax({
+      url: 'http://localhost:3000/',
+      type: 'get',
+      async: false,
+      dataType: "json",
+      crossDomain: true,
+      success: (function(_this) {
+        return function(result) {
+          return _this.defaultLoad(result);
+        };
+      })(this)
+    });
+  };
+
+  World.prototype.defaultLoad = function(data) {
     var i, id, intersection, road, _i, _len, _ref, _ref1, _ref2, _ref3, _ref4, _results;
-    data = data || localStorage.world;
-    data = data && JSON.parse(data);
-    if (data == null) {
-      return;
-    }
     this.clear();
     this.carsNumber = 0;
     _ref = data.intersections;

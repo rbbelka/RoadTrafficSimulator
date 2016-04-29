@@ -48,7 +48,7 @@ class ControlSignals
     state[0] = 1 if 'L' in str
     state[1] = 1 if 'F' in str
     state[2] = 1 if 'R' in str
-    state
+    state 
 
   @property 'state',
     get: ->

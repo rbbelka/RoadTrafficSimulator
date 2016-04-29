@@ -47,47 +47,58 @@ class World
       @intersectionAvgWaitingTime[id] = 0.0
 
   save: ->
-    # mapFile = "test.json"
-    # fs.writeFile mapFile, JSON.stringify(data), (err) -> console.error("Error writing file", error) if error
-    # заглушка до тех пор пока я не научился работать с файлами
-    for id, i of @intersections.all()
-      i.lambda = 0
-      i.controlSignals.delayMultiplier = [1,2,3,4]
-    for i in @goodIntersections
-      i.lambda = _.sample (_.range 10)
-    #@goodIntersections[0].lambda = 30
     #for id, i of @intersections.all()
-    #  console.log(i.lambda)
+    #  i.lambda = 0
+    #  i.controlSignals.delayMultiplier = [1,2,3,4]
+    #for i in @goodIntersections
+    #  i.lambda = _.sample (_.range 10)
     data = _.extend {}, this
     delete data.cars
     localStorage.world = JSON.stringify data
     console.log(JSON.stringify data)
+    $.post 'http://localhost:3000/upload', { 'data': JSON.stringify data }
 
   load: (data) ->
-    data = data or localStorage.world
-    data = data and JSON.parse data
-    return unless data?
+    received = false
+    a = 0
+    $.ajax({
+      url: 'http://localhost:3000/',
+      type: 'get',
+      async: false,
+      dataType:"json",
+      crossDomain:true,
+      success: (result) =>
+        @defaultLoad(result)
+      })
+
+  defaultLoad: (data) ->
+    #data = data or localStorage.world
+    #data = data and JSON.parse data
+    #return unless data?
     @clear()
     # @carsNumber = data.carsNumber or 0
     @carsNumber = 0
     for id, intersection of data.intersections
       @addIntersection Intersection.copy intersection
       #console.log(intersection.id)
+
     for id, road of data.roads
       road = Road.copy road
       road.source = @getIntersection road.source
       road.target = @getIntersection road.target
       @addRoad road
+
     # initial statistics
     for id, i of @intersections.all()
       @intersectionTotalNumberOfCars[id] = 0.0
       @intersectionAvgWaitingTime[id] = 0.0
-    #
+
     @goodIntersections = _.filter( @intersections.all() , (i) -> i.roads.length == 1 )
-    # 
+
     for id, i of @intersections.all()
       #console.log(i.lambda)
       @carsNumber = @carsNumber + i.lambda
+
     console.log(@carsNumber)
     @prob = _.map @goodIntersections, (i) -> [i.lambda, i.id]
     @prob = _.sortBy @prob, (p) -> p[0]
@@ -95,6 +106,7 @@ class World
     @F[0] = @prob[0][0]
     for i in _.range(1, @goodIntersections.length)
       @F[i] = @F[i-1] + @prob[i][0]
+
     #for i of _.range(@goodIntersections.length)
     #  console.log(@prob[i][0] + ' ' + @prob[i][1] + ' ' + @F[i])
 
