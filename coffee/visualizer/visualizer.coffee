@@ -89,10 +89,12 @@ class Visualizer
       numOfCars = @world.intersectionsStat[intersection.id]
       totalNumOfCars = @world.intersectionTotalNumberOfCars[intersection.id]
       avgWaitingTime = Math.round(@world.intersectionAvgWaitingTime[intersection.id]*100)/100
+      lambda = intersection.lambda
       #@ctx.fillText flipInterval + ' ' + phaseOffset, center.x, center.y
       @ctx.fillText numOfCars, center.x, center.y
       @ctx.fillText totalNumOfCars, center.x, center.y+1
       @ctx.fillText avgWaitingTime, center.x, center.y+2
+      @ctx.fillText lambda, center.x, center.y+3
       @ctx.restore()
 
   drawRoad: (road, alpha) ->

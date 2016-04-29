@@ -9,6 +9,7 @@ Road = require './road'
 Pool = require './pool'
 Rect = require '../geom/rect'
 settings = require '../settings'
+fs = require 'fs'
 
 class World
   constructor: ->
@@ -27,6 +28,8 @@ class World
     @cars = new Pool Car, obj.cars
     @carsNumber = 0
     @time = 0
+    #
+    @goodIntersections = []
     # arrays for some statistics
     @intersectionsStat = {}
     @intersectionTotalNumberOfCars = {} # total number of cars which passed through intersection
@@ -44,6 +47,16 @@ class World
       @intersectionAvgWaitingTime[id] = 0.0
 
   save: ->
+    # mapFile = "test.json"
+    # fs.writeFile mapFile, JSON.stringify(data), (err) -> console.error("Error writing file", error) if error
+    # заглушка до тех пор пока я не научился работать с файлами
+    for id, i of @intersections.all()
+      i.lambda = 0
+    for i in @goodIntersections
+      i.lambda = _.sample (_.range 10)
+    #@goodIntersections[0].lambda = 30
+    #for id, i of @intersections.all()
+    #  console.log(i.lambda)
     data = _.extend {}, this
     delete data.cars
     localStorage.world = JSON.stringify data
@@ -53,7 +66,8 @@ class World
     data = data and JSON.parse data
     return unless data?
     @clear()
-    @carsNumber = data.carsNumber or 0
+    # @carsNumber = data.carsNumber or 0
+    @carsNumber = 0
     for id, intersection of data.intersections
       @addIntersection Intersection.copy intersection
       #console.log(intersection.id)
@@ -66,6 +80,21 @@ class World
     for id, i of @intersections.all()
       @intersectionTotalNumberOfCars[id] = 0.0
       @intersectionAvgWaitingTime[id] = 0.0
+    #
+    @goodIntersections = _.filter( @intersections.all() , (i) -> i.roads.length == 1 )
+    # 
+    for id, i of @intersections.all()
+      #console.log(i.lambda)
+      @carsNumber = @carsNumber + i.lambda
+    console.log(@carsNumber)
+    @prob = _.map @goodIntersections, (i) -> [i.lambda, i.id]
+    @prob = _.sortBy @prob, (p) -> p[0]
+    @F = []
+    @F[0] = @prob[0][0]
+    for i in _.range(1, @goodIntersections.length)
+      @F[i] = @F[i-1] + @prob[i][0]
+    #for i of _.range(@goodIntersections.length)
+    #  console.log(@prob[i][0] + ' ' + @prob[i][1] + ' ' + @F[i])
 
   generateMap: (minX = -2, maxX = 2, minY = -2, maxY = 2) ->
     @clear()
@@ -178,7 +207,10 @@ class World
 
   addRandomCar: ->
     # road = _.sample @roads.all()
-    good_intersection = _.sample( _.filter( @intersections.all() , (i) -> i.roads.length == 1 ) )
+    x = _.sample _.range(@carsNumber + 1)
+    k = _.sortedIndex @F, x
+    good_intersection = @getIntersection(@prob[k][1])
+    #good_intersection = _.sample( @goodIntersections )
 
     road = _.sample( good_intersection.roads )
     if road?

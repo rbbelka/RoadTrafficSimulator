@@ -11,6 +11,8 @@ class Intersection
     @roads = []
     @inRoads = []
     @controlSignals = new ControlSignals this
+    # intensity of generated traffic
+    @lambda = 0
 
   @copy: (intersection) ->
     intersection.rect = Rect.copy intersection.rect
@@ -26,6 +28,7 @@ class Intersection
       id: @id
       rect: @rect
       controlSignals: @controlSignals
+      lambda: @lambda
 
   update: ->
     road.update() for road in @roads

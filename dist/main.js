@@ -49,7 +49,7 @@ $(function() {
 });
 
 
-},{"./helpers":6,"./model/world":15,"./settings":16,"./visualizer/visualizer":24,"dat-gui":27,"jquery":31,"underscore":32}],2:[function(require,module,exports){
+},{"./helpers":6,"./model/world":15,"./settings":16,"./visualizer/visualizer":24,"dat-gui":28,"jquery":32,"underscore":33}],2:[function(require,module,exports){
 'use strict';
 var Curve, Segment;
 
@@ -303,7 +303,7 @@ Rect = (function() {
 module.exports = Rect;
 
 
-},{"../helpers":6,"./point":3,"./segment":5,"underscore":32}],5:[function(require,module,exports){
+},{"../helpers":6,"./point":3,"./segment":5,"underscore":33}],5:[function(require,module,exports){
 'use strict';
 var Segment;
 
@@ -554,7 +554,7 @@ Car = (function() {
 module.exports = Car;
 
 
-},{"../helpers":6,"./trajectory":14,"underscore":32}],8:[function(require,module,exports){
+},{"../helpers":6,"./trajectory":14,"underscore":33}],8:[function(require,module,exports){
 'use strict';
 var ControlSignals, random, settings,
   __bind = function(fn, me){ return function(){ return fn.apply(me, arguments); }; },
@@ -681,6 +681,7 @@ Intersection = (function() {
     this.roads = [];
     this.inRoads = [];
     this.controlSignals = new ControlSignals(this);
+    this.lambda = 0;
   }
 
   Intersection.copy = function(intersection) {
@@ -699,7 +700,8 @@ Intersection = (function() {
     return obj = {
       id: this.id,
       rect: this.rect,
-      controlSignals: this.controlSignals
+      controlSignals: this.controlSignals,
+      lambda: this.lambda
     };
   };
 
@@ -726,7 +728,7 @@ Intersection = (function() {
 module.exports = Intersection;
 
 
-},{"../geom/rect":4,"../helpers":6,"./control-signals":8,"underscore":32}],10:[function(require,module,exports){
+},{"../geom/rect":4,"../helpers":6,"./control-signals":8,"underscore":33}],10:[function(require,module,exports){
 'use strict';
 var LanePosition, _;
 
@@ -807,7 +809,7 @@ LanePosition = (function() {
 module.exports = LanePosition;
 
 
-},{"../helpers":6,"underscore":32}],11:[function(require,module,exports){
+},{"../helpers":6,"underscore":33}],11:[function(require,module,exports){
 'use strict';
 var Lane, Segment, _;
 
@@ -931,7 +933,7 @@ Lane = (function() {
 module.exports = Lane;
 
 
-},{"../geom/segment":5,"../helpers":6,"underscore":32}],12:[function(require,module,exports){
+},{"../geom/segment":5,"../helpers":6,"underscore":33}],12:[function(require,module,exports){
 'use strict';
 var Pool;
 
@@ -1109,7 +1111,7 @@ Road = (function() {
 module.exports = Road;
 
 
-},{"../helpers":6,"../settings":16,"./lane":11,"underscore":32}],14:[function(require,module,exports){
+},{"../helpers":6,"../settings":16,"./lane":11,"underscore":33}],14:[function(require,module,exports){
 'use strict';
 var Curve, LanePosition, Trajectory, max, min, _;
 
@@ -1368,9 +1370,9 @@ Trajectory = (function() {
 module.exports = Trajectory;
 
 
-},{"../geom/curve":2,"../helpers":6,"./lane-position":10,"underscore":32}],15:[function(require,module,exports){
+},{"../geom/curve":2,"../helpers":6,"./lane-position":10,"underscore":33}],15:[function(require,module,exports){
 'use strict';
-var Car, Intersection, Pool, Rect, Road, World, random, settings, _,
+var Car, Intersection, Pool, Rect, Road, World, fs, random, settings, _,
   __bind = function(fn, me){ return function(){ return fn.apply(me, arguments); }; };
 
 random = Math.random;
@@ -1390,6 +1392,8 @@ Pool = require('./pool');
 Rect = require('../geom/rect');
 
 settings = require('../settings');
+
+fs = require('fs');
 
 World = (function() {
   function World() {
@@ -1422,6 +1426,7 @@ World = (function() {
     this.cars = new Pool(Car, obj.cars);
     this.carsNumber = 0;
     this.time = 0;
+    this.goodIntersections = [];
     this.intersectionsStat = {};
     this.intersectionTotalNumberOfCars = {};
     this.intersectionAvgWaitingTime = {};
@@ -1446,21 +1451,32 @@ World = (function() {
   };
 
   World.prototype.save = function() {
-    var data;
+    var data, i, id, _i, _len, _ref, _ref1;
+    _ref = this.intersections.all();
+    for (id in _ref) {
+      i = _ref[id];
+      i.lambda = 0;
+    }
+    _ref1 = this.goodIntersections;
+    for (_i = 0, _len = _ref1.length; _i < _len; _i++) {
+      i = _ref1[_i];
+      i.lambda = _.sample(_.range(5));
+    }
+    this.goodIntersections[0].lambda = 30;
     data = _.extend({}, this);
     delete data.cars;
     return localStorage.world = JSON.stringify(data);
   };
 
   World.prototype.load = function(data) {
-    var i, id, intersection, road, _ref, _ref1, _ref2, _results;
+    var i, id, intersection, road, _i, _len, _ref, _ref1, _ref2, _ref3, _ref4, _results;
     data = data || localStorage.world;
     data = data && JSON.parse(data);
     if (data == null) {
       return;
     }
     this.clear();
-    this.carsNumber = data.carsNumber || 0;
+    this.carsNumber = 0;
     _ref = data.intersections;
     for (id in _ref) {
       intersection = _ref[id];
@@ -1475,11 +1491,33 @@ World = (function() {
       this.addRoad(road);
     }
     _ref2 = this.intersections.all();
-    _results = [];
     for (id in _ref2) {
       i = _ref2[id];
       this.intersectionTotalNumberOfCars[id] = 0.0;
-      _results.push(this.intersectionAvgWaitingTime[id] = 0.0);
+      this.intersectionAvgWaitingTime[id] = 0.0;
+    }
+    this.goodIntersections = _.filter(this.intersections.all(), function(i) {
+      return i.roads.length === 1;
+    });
+    _ref3 = this.intersections.all();
+    for (id in _ref3) {
+      i = _ref3[id];
+      this.carsNumber = this.carsNumber + i.lambda;
+    }
+    console.log(this.carsNumber);
+    this.prob = _.map(this.goodIntersections, function(i) {
+      return [i.lambda, i.id];
+    });
+    this.prob = _.sortBy(this.prob, function(p) {
+      return p[0];
+    });
+    this.F = [];
+    this.F[0] = this.prob[0][0];
+    _ref4 = _.range(1, this.goodIntersections.length);
+    _results = [];
+    for (_i = 0, _len = _ref4.length; _i < _len; _i++) {
+      i = _ref4[_i];
+      _results.push(this.F[i] = this.F[i - 1] + this.prob[i][0]);
     }
     return _results;
   };
@@ -1665,10 +1703,10 @@ World = (function() {
   };
 
   World.prototype.addRandomCar = function() {
-    var good_intersection, lane, road;
-    good_intersection = _.sample(_.filter(this.intersections.all(), function(i) {
-      return i.roads.length === 1;
-    }));
+    var good_intersection, k, lane, road, x;
+    x = _.sample(_.range(this.carsNumber + 1));
+    k = _.sortedIndex(this.F, x);
+    good_intersection = this.getIntersection(this.prob[k][1]);
     road = _.sample(good_intersection.roads);
     if (road != null) {
       lane = _.sample(road.lanes);
@@ -1693,7 +1731,7 @@ World = (function() {
 module.exports = World;
 
 
-},{"../geom/rect":4,"../helpers":6,"../settings":16,"./car":7,"./intersection":9,"./pool":12,"./road":13,"underscore":32}],16:[function(require,module,exports){
+},{"../geom/rect":4,"../helpers":6,"../settings":16,"./car":7,"./intersection":9,"./pool":12,"./road":13,"fs":26,"underscore":33}],16:[function(require,module,exports){
 'use strict';
 var settings;
 
@@ -2281,7 +2319,7 @@ Tool = (function() {
 module.exports = Tool;
 
 
-},{"../geom/point.coffee":3,"../geom/rect.coffee":4,"../helpers.coffee":6,"jquery":31,"jquery-mousewheel":30,"underscore":32}],24:[function(require,module,exports){
+},{"../geom/point.coffee":3,"../geom/rect.coffee":4,"../helpers.coffee":6,"jquery":32,"jquery-mousewheel":31,"underscore":33}],24:[function(require,module,exports){
 'use strict';
 var $, Graphics, PI, Point, Rect, ToolHighlighter, ToolIntersectionBuilder, ToolIntersectionMover, ToolMover, ToolRoadBuilder, Visualizer, Zoomer, chroma, settings, _,
   __bind = function(fn, me){ return function(){ return fn.apply(me, arguments); }; };
@@ -2349,7 +2387,7 @@ Visualizer = (function() {
   };
 
   Visualizer.prototype.drawSignals = function(road) {
-    var avgWaitingTime, center, flipInterval, intersection, lights, lightsColors, numOfCars, phaseOffset, segment, sideId, totalNumOfCars;
+    var avgWaitingTime, center, flipInterval, intersection, lambda, lights, lightsColors, numOfCars, phaseOffset, segment, sideId, totalNumOfCars;
     lightsColors = [settings.colors.redLight, settings.colors.greenLight];
     intersection = road.target;
     segment = road.targetSide;
@@ -2382,9 +2420,11 @@ Visualizer = (function() {
       numOfCars = this.world.intersectionsStat[intersection.id];
       totalNumOfCars = this.world.intersectionTotalNumberOfCars[intersection.id];
       avgWaitingTime = Math.round(this.world.intersectionAvgWaitingTime[intersection.id] * 100) / 100;
+      lambda = intersection.lambda;
       this.ctx.fillText(numOfCars, center.x, center.y);
       this.ctx.fillText(totalNumOfCars, center.x, center.y + 1);
       this.ctx.fillText(avgWaitingTime, center.x, center.y + 2);
+      this.ctx.fillText(lambda, center.x, center.y + 3);
       return this.ctx.restore();
     }
   };
@@ -2559,7 +2599,7 @@ Visualizer = (function() {
 module.exports = Visualizer;
 
 
-},{"../geom/point":3,"../geom/rect":4,"../helpers":6,"../settings":16,"./graphics":17,"./highlighter":18,"./intersection-builder":19,"./intersection-mover":20,"./mover":21,"./road-builder":22,"./zoomer":25,"chroma-js":26,"jquery":31,"underscore":32}],25:[function(require,module,exports){
+},{"../geom/point":3,"../geom/rect":4,"../helpers":6,"../settings":16,"./graphics":17,"./highlighter":18,"./intersection-builder":19,"./intersection-mover":20,"./mover":21,"./road-builder":22,"./zoomer":25,"chroma-js":27,"jquery":32,"underscore":33}],25:[function(require,module,exports){
 'use strict';
 var Point, Rect, Tool, Zoomer, max, min, settings,
   __bind = function(fn, me){ return function(){ return fn.apply(me, arguments); }; },
@@ -2670,6 +2710,8 @@ module.exports = Zoomer;
 
 
 },{"../geom/point.coffee":3,"../geom/rect.coffee":4,"../helpers.coffee":6,"../settings.coffee":16,"./tool.coffee":23}],26:[function(require,module,exports){
+
+},{}],27:[function(require,module,exports){
 // Generated by CoffeeScript 1.6.2
 /** echo  * @license echo  * while read i do echo  *  done echo
 */
@@ -4534,10 +4576,10 @@ module.exports = Zoomer;
 
 }).call(this);
 
-},{}],27:[function(require,module,exports){
+},{}],28:[function(require,module,exports){
 module.exports = require('./vendor/dat.gui')
 module.exports.color = require('./vendor/dat.color')
-},{"./vendor/dat.color":28,"./vendor/dat.gui":29}],28:[function(require,module,exports){
+},{"./vendor/dat.color":29,"./vendor/dat.gui":30}],29:[function(require,module,exports){
 /**
  * dat-gui JavaScript Controller Library
  * http://code.google.com/p/dat-gui
@@ -5293,7 +5335,7 @@ dat.color.math = (function () {
 })(),
 dat.color.toString,
 dat.utils.common);
-},{}],29:[function(require,module,exports){
+},{}],30:[function(require,module,exports){
 /**
  * dat-gui JavaScript Controller Library
  * http://code.google.com/p/dat-gui
@@ -8954,7 +8996,7 @@ dat.dom.CenteredDiv = (function (dom, common) {
 dat.utils.common),
 dat.dom.dom,
 dat.utils.common);
-},{}],30:[function(require,module,exports){
+},{}],31:[function(require,module,exports){
 /*!
  * jQuery Mousewheel 3.1.13
  *
@@ -9177,7 +9219,7 @@ dat.utils.common);
 
 }));
 
-},{}],31:[function(require,module,exports){
+},{}],32:[function(require,module,exports){
 /*!
  * jQuery JavaScript Library v2.1.4
  * http://jquery.com/
@@ -18389,7 +18431,7 @@ return jQuery;
 
 }));
 
-},{}],32:[function(require,module,exports){
+},{}],33:[function(require,module,exports){
 //     Underscore.js 1.6.0
 //     http://underscorejs.org
 //     (c) 2009-2014 Jeremy Ashkenas, DocumentCloud and Investigative Reporters & Editors
