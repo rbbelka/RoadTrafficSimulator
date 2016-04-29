@@ -10,6 +10,8 @@ class ControlSignals
     @phaseOffset = 100 * random()
     @time = @phaseOffset
     @stateNum = 0
+    # delays
+    @delayMultiplier = [1,1,1,1]
 
   @copy: (controlSignals, intersection) ->
     if !controlSignals?
@@ -19,12 +21,15 @@ class ControlSignals
     result.time = result.phaseOffset = controlSignals.phaseOffset
     result.stateNum = 0
     result.intersection = intersection
+    # delays
+    result.delayMultiplier = controlSignals.delayMultiplier
     result
 
   toJSON: ->
     obj =
       flipMultiplier: @flipMultiplier
       phaseOffset: @phaseOffset
+      delayMultiplier: @delayMultiplier
 
   states: [
     ['L', '', 'L', ''],
@@ -36,7 +41,7 @@ class ControlSignals
   @STATE = [RED: 0, GREEN: 1]
 
   @property 'flipInterval',
-    get: -> (0.1 + 0.05 * @flipMultiplier) * settings.lightsFlipInterval
+    get: -> (0.1 + 0.05 * @flipMultiplier) * settings.lightsFlipInterval * @delayMultiplier[@stateNum % @states.length]
 
   _decode: (str) ->
     state = [0, 0, 0]
@@ -58,7 +63,7 @@ class ControlSignals
   onTick: (delta) =>
     @time += delta
     if @time > @flipInterval
-      @flip()
       @time -= @flipInterval
+      @flip()
 
 module.exports = ControlSignals

@@ -574,6 +574,7 @@ ControlSignals = (function() {
     this.phaseOffset = 100 * random();
     this.time = this.phaseOffset;
     this.stateNum = 0;
+    this.delayMultiplier = [1, 1, 1, 1];
   }
 
   ControlSignals.copy = function(controlSignals, intersection) {
@@ -586,6 +587,7 @@ ControlSignals = (function() {
     result.time = result.phaseOffset = controlSignals.phaseOffset;
     result.stateNum = 0;
     result.intersection = intersection;
+    result.delayMultiplier = controlSignals.delayMultiplier;
     return result;
   };
 
@@ -593,7 +595,8 @@ ControlSignals = (function() {
     var obj;
     return obj = {
       flipMultiplier: this.flipMultiplier,
-      phaseOffset: this.phaseOffset
+      phaseOffset: this.phaseOffset,
+      delayMultiplier: this.delayMultiplier
     };
   };
 
@@ -608,7 +611,7 @@ ControlSignals = (function() {
 
   ControlSignals.property('flipInterval', {
     get: function() {
-      return (0.1 + 0.05 * this.flipMultiplier) * settings.lightsFlipInterval;
+      return (0.1 + 0.05 * this.flipMultiplier) * settings.lightsFlipInterval * this.delayMultiplier[this.stateNum % this.states.length];
     }
   });
 
@@ -650,8 +653,8 @@ ControlSignals = (function() {
   ControlSignals.prototype.onTick = function(delta) {
     this.time += delta;
     if (this.time > this.flipInterval) {
-      this.flip();
-      return this.time -= this.flipInterval;
+      this.time -= this.flipInterval;
+      return this.flip();
     }
   };
 
@@ -1456,16 +1459,17 @@ World = (function() {
     for (id in _ref) {
       i = _ref[id];
       i.lambda = 0;
+      i.controlSignals.delayMultiplier = [1, 2, 3, 4];
     }
     _ref1 = this.goodIntersections;
     for (_i = 0, _len = _ref1.length; _i < _len; _i++) {
       i = _ref1[_i];
-      i.lambda = _.sample(_.range(5));
+      i.lambda = _.sample(_.range(10));
     }
-    this.goodIntersections[0].lambda = 30;
     data = _.extend({}, this);
     delete data.cars;
-    return localStorage.world = JSON.stringify(data);
+    localStorage.world = JSON.stringify(data);
+    return console.log(JSON.stringify(data));
   };
 
   World.prototype.load = function(data) {

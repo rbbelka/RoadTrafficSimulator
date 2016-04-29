@@ -52,6 +52,7 @@ class World
     # заглушка до тех пор пока я не научился работать с файлами
     for id, i of @intersections.all()
       i.lambda = 0
+      i.controlSignals.delayMultiplier = [1,2,3,4]
     for i in @goodIntersections
       i.lambda = _.sample (_.range 10)
     #@goodIntersections[0].lambda = 30
@@ -60,6 +61,7 @@ class World
     data = _.extend {}, this
     delete data.cars
     localStorage.world = JSON.stringify data
+    console.log(JSON.stringify data)
 
   load: (data) ->
     data = data or localStorage.world
