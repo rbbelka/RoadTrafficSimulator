@@ -95,6 +95,7 @@ class Visualizer
       @ctx.fillText totalNumOfCars, center.x, center.y+1
       @ctx.fillText avgWaitingTime, center.x, center.y+2
       @ctx.fillText lambda, center.x, center.y+3
+      @ctx.fillText intersection.id, center.x, center.y-1
       @ctx.restore()
 
   drawRoad: (road, alpha) ->
@@ -153,6 +154,10 @@ class Visualizer
       @ctx.font = "1px Arial"
       @ctx.fillText s, center.x, center.y
       @ctx.fillText wt, center.x, center.y+1
+      if car.trajectory.current.lane.isLeftmost
+        @ctx.fillText 'L', center.x, center.y+2
+      else
+        @ctx.fillText 'R', center.x, center.y+2
 
       if (curve = car.trajectory.temp?.lane)?
         @graphics.drawCurve curve, 0.1, 'red'

@@ -80,8 +80,21 @@ class Car
   pickNextRoad: ->
     intersection = @trajectory.nextIntersection
     currentLane = @trajectory.current.lane
-    possibleRoads = intersection.roads.filter (x) ->
-      x.target isnt currentLane.road.source
+#    possibleRoads = intersection.roads.filter (x) ->
+#      x.target isnt currentLane.road.source
+    #
+    possibleRoads = []
+    if currentLane.isLeftmost
+      for r in intersection.roads
+        if r.target isnt currentLane.road.source
+          if currentLane.road.getTurnDirection(r) == 0
+            possibleRoads.push r
+    else
+      for r in intersection.roads
+        if r.target isnt currentLane.road.source
+          if currentLane.road.getTurnDirection(r) >= 1
+            possibleRoads.push r
+
     return null if possibleRoads.length is 0
     nextRoad = _.sample possibleRoads
 

@@ -30,6 +30,7 @@ class World
     @time = 0
     #
     @goodIntersections = []
+    @workingIntersections = []
     # arrays for some statistics
     @intersectionsStat = {}
     @intersectionTotalNumberOfCars = {} # total number of cars which passed through intersection
@@ -45,31 +46,37 @@ class World
     for id, i of @intersections.all()
       @intersectionTotalNumberOfCars[id] = 0.0
       @intersectionAvgWaitingTime[id] = 0.0
+    # sampling from discrete distribution
+    @prob = []
+    @F = []
 
   save: ->
     #for id, i of @intersections.all()
+    #  i.controlSignals.delayMultiplier = [0.5,0.5,0.5,0.5]
     #  i.lambda = 0
-    #  i.controlSignals.delayMultiplier = [1,2,3,4]
     #for i in @goodIntersections
     #  i.lambda = _.sample (_.range 10)
     data = _.extend {}, this
     delete data.cars
     localStorage.world = JSON.stringify data
-    console.log(JSON.stringify data)
+    #console.log(JSON.stringify data)
     $.post 'http://localhost:3000/upload', { 'data': JSON.stringify data }
 
   load: (data) ->
-    received = false
-    a = 0
-    $.ajax({
-      url: 'http://localhost:3000/',
-      type: 'get',
-      async: false,
-      dataType:"json",
-      crossDomain:true,
-      success: (result) =>
-        @defaultLoad(result)
-      })
+    if data 
+      @defaultLoad(JSON.parse data)
+      #console.log('1')
+    else 
+      $.ajax({
+        url: 'http://localhost:3000/',
+        type: 'get',
+        async: false,
+        dataType:"json",
+        crossDomain:true,
+        success: (result) =>
+          @defaultLoad(result)
+        })
+      #console.log('2')
 
   defaultLoad: (data) ->
     #data = data or localStorage.world
@@ -77,9 +84,10 @@ class World
     #return unless data?
     @clear()
     # @carsNumber = data.carsNumber or 0
-    @carsNumber = 0
+
     for id, intersection of data.intersections
-      @addIntersection Intersection.copy intersection
+      #@addIntersection Intersection.copy intersection
+      @intersections.put Intersection.copy intersection
       #console.log(intersection.id)
 
     for id, road of data.roads
@@ -92,23 +100,27 @@ class World
     for id, i of @intersections.all()
       @intersectionTotalNumberOfCars[id] = 0.0
       @intersectionAvgWaitingTime[id] = 0.0
+    @initStat()
 
+  initStat: ->
     @goodIntersections = _.filter( @intersections.all() , (i) -> i.roads.length == 1 )
-
+    @workingIntersections = _.filter( @intersections.all() , (i) -> i.roads.length != 1 )
+    @carsNumber = 0
     for id, i of @intersections.all()
       #console.log(i.lambda)
       @carsNumber = @carsNumber + i.lambda
 
-    console.log(@carsNumber)
+    #console.log(@carsNumber)
     @prob = _.map @goodIntersections, (i) -> [i.lambda, i.id]
     @prob = _.sortBy @prob, (p) -> p[0]
     @F = []
-    @F[0] = @prob[0][0]
-    for i in _.range(1, @goodIntersections.length)
-      @F[i] = @F[i-1] + @prob[i][0]
+    if @goodIntersections.length > 0
+      @F[0] = @prob[0][0]
+      for i in _.range(1, @goodIntersections.length)
+        @F[i] = @F[i-1] + @prob[i][0]
+      #for i of _.range(@goodIntersections.length)
+      #  console.log(@prob[i][0] + ' ' + @prob[i][1] + ' ' + @F[i])
 
-    #for i of _.range(@goodIntersections.length)
-    #  console.log(@prob[i][0] + ' ' + @prob[i][1] + ' ' + @F[i])
 
   generateMap: (minX = -2, maxX = 2, minY = -2, maxY = 2) ->
     @clear()
@@ -159,6 +171,12 @@ class World
     for id, car of @cars.all()
       car.move delta
       @removeCar car unless car.alive
+    #
+    #console.log(@time + ' ' + delta)
+    #for id, t of @intersectionAvgWaitingTime
+    #  if t > 0
+    #    console.log(id + ' ' + t)
+    #console.log (' ')
 
   refreshStat: (delta) ->
     for id, intersection of @intersections.all()
@@ -215,6 +233,11 @@ class World
 
   addIntersection: (intersection) ->
     @intersections.put intersection
+    #
+    @intersectionTotalNumberOfCars[intersection.id] = 0.0
+    @intersectionAvgWaitingTime[intersection.id] = 0.0
+    @initStat()
+
 
   getIntersection: (id) ->
     @intersections.get id

@@ -499,12 +499,31 @@ Car = (function() {
   };
 
   Car.prototype.pickNextRoad = function() {
-    var currentLane, intersection, nextRoad, possibleRoads;
+    var currentLane, intersection, nextRoad, possibleRoads, r, _i, _j, _len, _len1, _ref, _ref1;
     intersection = this.trajectory.nextIntersection;
     currentLane = this.trajectory.current.lane;
-    possibleRoads = intersection.roads.filter(function(x) {
-      return x.target !== currentLane.road.source;
-    });
+    possibleRoads = [];
+    if (currentLane.isLeftmost) {
+      _ref = intersection.roads;
+      for (_i = 0, _len = _ref.length; _i < _len; _i++) {
+        r = _ref[_i];
+        if (r.target !== currentLane.road.source) {
+          if (currentLane.road.getTurnDirection(r) === 0) {
+            possibleRoads.push(r);
+          }
+        }
+      }
+    } else {
+      _ref1 = intersection.roads;
+      for (_j = 0, _len1 = _ref1.length; _j < _len1; _j++) {
+        r = _ref1[_j];
+        if (r.target !== currentLane.road.source) {
+          if (currentLane.road.getTurnDirection(r) >= 1) {
+            possibleRoads.push(r);
+          }
+        }
+      }
+    }
     if (possibleRoads.length === 0) {
       return null;
     }
@@ -1420,7 +1439,7 @@ World = (function() {
   });
 
   World.prototype.set = function(obj) {
-    var car, i, id, _ref, _ref1, _results;
+    var car, i, id, _ref, _ref1;
     if (obj == null) {
       obj = {};
     }
@@ -1430,6 +1449,7 @@ World = (function() {
     this.carsNumber = 0;
     this.time = 0;
     this.goodIntersections = [];
+    this.workingIntersections = [];
     this.intersectionsStat = {};
     this.intersectionTotalNumberOfCars = {};
     this.intersectionAvgWaitingTime = {};
@@ -1444,13 +1464,13 @@ World = (function() {
       this.carStoped[id] = false;
     }
     _ref1 = this.intersections.all();
-    _results = [];
     for (id in _ref1) {
       i = _ref1[id];
       this.intersectionTotalNumberOfCars[id] = 0.0;
-      _results.push(this.intersectionAvgWaitingTime[id] = 0.0);
+      this.intersectionAvgWaitingTime[id] = 0.0;
     }
-    return _results;
+    this.prob = [];
+    return this.F = [];
   };
 
   World.prototype.save = function() {
@@ -1458,38 +1478,37 @@ World = (function() {
     data = _.extend({}, this);
     delete data.cars;
     localStorage.world = JSON.stringify(data);
-    console.log(JSON.stringify(data));
     return $.post('http://localhost:3000/upload', {
       'data': JSON.stringify(data)
     });
   };
 
   World.prototype.load = function(data) {
-    var a, received;
-    received = false;
-    a = 0;
-    return $.ajax({
-      url: 'http://localhost:3000/',
-      type: 'get',
-      async: false,
-      dataType: "json",
-      crossDomain: true,
-      success: (function(_this) {
-        return function(result) {
-          return _this.defaultLoad(result);
-        };
-      })(this)
-    });
+    if (data) {
+      return this.defaultLoad(JSON.parse(data));
+    } else {
+      return $.ajax({
+        url: 'http://localhost:3000/',
+        type: 'get',
+        async: false,
+        dataType: "json",
+        crossDomain: true,
+        success: (function(_this) {
+          return function(result) {
+            return _this.defaultLoad(result);
+          };
+        })(this)
+      });
+    }
   };
 
   World.prototype.defaultLoad = function(data) {
-    var i, id, intersection, road, _i, _len, _ref, _ref1, _ref2, _ref3, _ref4, _results;
+    var i, id, intersection, road, _ref, _ref1, _ref2;
     this.clear();
-    this.carsNumber = 0;
     _ref = data.intersections;
     for (id in _ref) {
       intersection = _ref[id];
-      this.addIntersection(Intersection.copy(intersection));
+      this.intersections.put(Intersection.copy(intersection));
     }
     _ref1 = data.roads;
     for (id in _ref1) {
@@ -1505,15 +1524,23 @@ World = (function() {
       this.intersectionTotalNumberOfCars[id] = 0.0;
       this.intersectionAvgWaitingTime[id] = 0.0;
     }
+    return this.initStat();
+  };
+
+  World.prototype.initStat = function() {
+    var i, id, _i, _len, _ref, _ref1, _results;
     this.goodIntersections = _.filter(this.intersections.all(), function(i) {
       return i.roads.length === 1;
     });
-    _ref3 = this.intersections.all();
-    for (id in _ref3) {
-      i = _ref3[id];
+    this.workingIntersections = _.filter(this.intersections.all(), function(i) {
+      return i.roads.length !== 1;
+    });
+    this.carsNumber = 0;
+    _ref = this.intersections.all();
+    for (id in _ref) {
+      i = _ref[id];
       this.carsNumber = this.carsNumber + i.lambda;
     }
-    console.log(this.carsNumber);
     this.prob = _.map(this.goodIntersections, function(i) {
       return [i.lambda, i.id];
     });
@@ -1521,14 +1548,16 @@ World = (function() {
       return p[0];
     });
     this.F = [];
-    this.F[0] = this.prob[0][0];
-    _ref4 = _.range(1, this.goodIntersections.length);
-    _results = [];
-    for (_i = 0, _len = _ref4.length; _i < _len; _i++) {
-      i = _ref4[_i];
-      _results.push(this.F[i] = this.F[i - 1] + this.prob[i][0]);
+    if (this.goodIntersections.length > 0) {
+      this.F[0] = this.prob[0][0];
+      _ref1 = _.range(1, this.goodIntersections.length);
+      _results = [];
+      for (_i = 0, _len = _ref1.length; _i < _len; _i++) {
+        i = _ref1[_i];
+        _results.push(this.F[i] = this.F[i - 1] + this.prob[i][0]);
+      }
+      return _results;
     }
-    return _results;
   };
 
   World.prototype.generateMap = function(minX, maxX, minY, maxY) {
@@ -1704,7 +1733,10 @@ World = (function() {
   };
 
   World.prototype.addIntersection = function(intersection) {
-    return this.intersections.put(intersection);
+    this.intersections.put(intersection);
+    this.intersectionTotalNumberOfCars[intersection.id] = 0.0;
+    this.intersectionAvgWaitingTime[intersection.id] = 0.0;
+    return this.initStat();
   };
 
   World.prototype.getIntersection = function(id) {
@@ -2434,6 +2466,7 @@ Visualizer = (function() {
       this.ctx.fillText(totalNumOfCars, center.x, center.y + 1);
       this.ctx.fillText(avgWaitingTime, center.x, center.y + 2);
       this.ctx.fillText(lambda, center.x, center.y + 3);
+      this.ctx.fillText(intersection.id, center.x, center.y - 1);
       return this.ctx.restore();
     }
   };
@@ -2494,6 +2527,11 @@ Visualizer = (function() {
       this.ctx.font = "1px Arial";
       this.ctx.fillText(s, center.x, center.y);
       this.ctx.fillText(wt, center.x, center.y + 1);
+      if (car.trajectory.current.lane.isLeftmost) {
+        this.ctx.fillText('L', center.x, center.y + 2);
+      } else {
+        this.ctx.fillText('R', center.x, center.y + 2);
+      }
       if ((curve = (_ref = car.trajectory.temp) != null ? _ref.lane : void 0) != null) {
         this.graphics.drawCurve(curve, 0.1, 'red');
       }
