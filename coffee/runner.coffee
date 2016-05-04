@@ -26,7 +26,7 @@ measureAverageWaitingTime = () ->
   world = new World()
   map = fs.readFileSync '../experiments/map.copy.json', {encoding: 'utf8'}
   world.load map
-  for i in [0..10000]
+  for i in [0..5000]
     world.onTick 0.1
   avg = 0.0
   cnt = 0
