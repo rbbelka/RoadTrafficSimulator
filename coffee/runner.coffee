@@ -24,10 +24,8 @@ measureAverageSpeed = (setupCallback) ->
 
 measureAverageWaitingTime = () ->
   world = new World()
-  map = fs.readFileSync './experiments/map.json', {encoding: 'utf8'}
+  map = fs.readFileSync '../experiments/map.copy.json', {encoding: 'utf8'}
   world.load map
-  #setupCallback?(world)
-  results = []
   for i in [0..10000]
     world.onTick 0.1
   avg = 0.0
@@ -37,13 +35,12 @@ measureAverageWaitingTime = () ->
       avg = avg + t
       cnt = cnt + 1
   avg = avg / cnt
-  results.push avg
-  (results.reduce (a, b) -> a + b) / results.length
+  avg
 
 generateData = () ->
   t = []
-  for i in _.range 4000000
-    t.push (_.sample (_.range 1, 41)) / 10
+  for i in _.range 1000000
+    t.push (_.sample (_.range 1, 31)) / 10
   t
 
 generateConfig = (world, t) ->
@@ -57,13 +54,13 @@ generateTrainingSet = () ->
   t = generateData()
   map = fs.readFileSync './experiments/map.json', {encoding: 'utf8'}
 
-  for i in _.range(80)
+  for i in _.range(160)
     console.log( i )
     world = new World()
     world.load map
     generateConfig(world, t)
     for intersect in world.workingIntersections
-      out.write(intersect.controlSignals.delayMultiplier + ' ')
+      out.write(intersect.controlSignals.delayMultiplier + ', ')
       console.log intersect.controlSignals.delayMultiplier
     results = []
     for j in [0..10000]
@@ -75,7 +72,7 @@ generateTrainingSet = () ->
         avg = avg + time
         cnt = cnt + 1
     avg = avg / cnt
-    out.write(avg + ' ')
+    out.write(avg + '\n')
     console.log(avg)
     results.push avg
 
@@ -89,10 +86,10 @@ getParams = (world) ->
 settings.lightsFlipInterval = 160
 
 experiment0 = () ->
-  out = fs.createWriteStream './experiments/0.data'
+  out = fs.createWriteStream '../experiments/0.data'
   result = measureAverageWaitingTime()
   console.log result
-  out.write('hello');
+  out.write(result + ' ');
 
 experiment1 = () ->
   out = fs.createWriteStream './experiments/1.data'
@@ -126,5 +123,5 @@ experiment3 = () ->
 # experiment1()
 # experiment2()
 # experiment3()
-# experiment0()
-generateTrainingSet()
+experiment0()
+# generateTrainingSet()
