@@ -42,6 +42,7 @@ wi = ['intersection153', 'intersection154']
 def run_experiment(delays, *params):
   data = None
   i = 0
+  print(delays)
   # load data and create new configuration
   with open('../experiments/map.copy.json', 'r') as data_file:    
     data = json.load(data_file)
@@ -76,11 +77,11 @@ def experiment():
 def main():
   #experiment()
   #run_experiment([1,1,1,1,1,1,1,1])
-  x0 = [1,1,1,1,1,1,1,1]
+  x0 = [1.0,1.0,1.0,1.0,1.0,1.0,1.0,1.0]
   np.random.seed(555)   # Seeded to allow replication.
   res = optimize.anneal(run_experiment, x0, schedule='boltzmann', 
-			full_output=True, maxiter=500, lower=0.1,
-			upper=3.0, dwell=5, disp=True)
+			full_output=True, maxiter=500, lower=[0.1,0.1,0.1,0.1,0.1,0.1,0.1,0.1],
+			upper=[3.0,3.0,3.0,3.0,3.0,3.0,3.0,3.0], dwell=5, disp=True)
   print(res)
 
 

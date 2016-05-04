@@ -11,7 +11,7 @@ class Car
     @color = 255
     @_speed = 0
     @width = 1.7
-    @length = 3 + 2 * random()
+    @length = 3
     @maxSpeed = 30
     @s0 = 2
     @timeHeadway = 1.5
