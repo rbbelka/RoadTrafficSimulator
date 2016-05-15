@@ -14,7 +14,7 @@ avgInstantSpeed = (setupCallback) ->
 #  map = fs.readFileSync './experiments/map2lights.json', {encoding: 'utf8'}
 #  world.load map
   world.generateMap()
-  world.carsNumber = 100
+  world.carsNumber = 400
   setupCallback?(world)
   results = []
   for i in [0..1000]

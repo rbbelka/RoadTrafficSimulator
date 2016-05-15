@@ -204,3 +204,4 @@ class World
       @removeCar car
 
 module.exports = World
+

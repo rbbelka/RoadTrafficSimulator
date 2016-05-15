@@ -19,7 +19,7 @@
     var i, j, results, world;
     world = new World();
     world.generateMap();
-    world.carsNumber = 100;
+    world.carsNumber = 400;
     if (typeof setupCallback === "function") {
       setupCallback(world);
     }
