@@ -9,6 +9,7 @@ Road = require './road'
 Pool = require './pool'
 Rect = require '../geom/rect'
 settings = require '../settings'
+fs = require 'fs'
 
 class World
   constructor: ->
@@ -35,27 +36,101 @@ class World
     @cars = new Pool Car, obj.cars
     @carsNumber = 0
     @time = 0
+    #
     @carsAvgSpeed = []
+    #
+    @goodIntersections = []
+    @workingIntersections = []
+    # arrays for some statistics
+    @intersectionsStat = {}
+    @intersectionTotalNumberOfCars = {} # total number of cars which passed through intersection
+    @intersectionAvgWaitingTime = {}    # average waiting time at intersection
+    @carsWaitTime = {}                  # current waiting time of car at specific intersection
+    @carsCurTarget = {}                 # target-intersection
+    @carStoped = {}                     # true - if car currently waiting at intersection
+    # initial statistics
+    for id, car of @cars.all()
+      @carsWaitTime[id] = 0.0
+      @carsCurTarget[id] = car.trajectory.nextIntersection.id
+      @carStoped[id] = false
+    for id, i of @intersections.all()
+      @intersectionTotalNumberOfCars[id] = 0.0
+      @intersectionAvgWaitingTime[id] = 0.0
+    # sampling from discrete distribution
+    @prob = []
+    @F = []
+
 
   save: ->
+    #for id, i of @intersections.all()
+    #  i.controlSignals.delayMultiplier = [0.5,0.5,0.5,0.5]
+    #  i.lambda = 0
+    #for i in @goodIntersections
+    #  i.lambda = _.sample (_.range 10)
     data = _.extend {}, this
     delete data.cars
     localStorage.world = JSON.stringify data
+    #console.log(JSON.stringify data)
+    $.post 'http://localhost:3000/upload', { 'data': JSON.stringify data }
 
   load: (data) ->
-    data = data or localStorage.world
-    data = data and JSON.parse data
-    return unless data?
+    if data 
+      @defaultLoad(JSON.parse data)
+      #console.log('1')
+    else 
+      $.ajax({
+        url: 'http://localhost:3000/',
+        type: 'get',
+        async: false,
+        dataType:"json",
+        crossDomain:true,
+        success: (result) =>
+          @defaultLoad(result)
+        })
+      #console.log('2')
+
+  defaultLoad: (data) ->
+    #data = data or localStorage.world
+    #data = data and JSON.parse data
+    #return unless data?
     @clear()
-    @carsNumber = data.carsNumber or 0
+    # @carsNumber = data.carsNumber or 0
+
     for id, intersection of data.intersections
-      @addIntersection Intersection.copy intersection
+      #@addIntersection Intersection.copy intersection
+      @intersections.put Intersection.copy intersection
+      #console.log(intersection.id)
+
     for id, road of data.roads
       road = Road.copy road
       road.source = @getIntersection road.source
       road.target = @getIntersection road.target
       @addRoad road
 
+    # initial statistics
+    for id, i of @intersections.all()
+      @intersectionTotalNumberOfCars[id] = 0.0
+      @intersectionAvgWaitingTime[id] = 0.0
+    @initStat()
+
+  initStat: ->
+    @goodIntersections = _.filter( @intersections.all() , (i) -> i.roads.length == 1 )
+    @workingIntersections = _.filter( @intersections.all() , (i) -> i.roads.length != 1 )
+    @carsNumber = 0
+    for id, i of @intersections.all()
+      #console.log(i.lambda)
+      @carsNumber = @carsNumber + i.lambda
+
+    #console.log(@carsNumber)
+    @prob = _.map @goodIntersections, (i) -> [i.lambda, i.id]
+    @prob = _.sortBy @prob, (p) -> p[0]
+    @F = []
+    if @goodIntersections.length > 0
+      @F[0] = @prob[0][0]
+      for i in _.range(1, @goodIntersections.length)
+        @F[i] = @F[i-1] + @prob[i][0]
+      #for i of _.range(@goodIntersections.length)
+      #  console.log(@prob[i][0] + ' ' + @prob[i][1] + ' ' + @F[i])
 
   generateMap: (minX = -2, maxX = 2, minY = -2, maxY = 2) ->
     @clear()
@@ -149,6 +224,7 @@ class World
   onTick: (delta) =>
     throw Error 'delta > 1' if delta > 1
     @time += delta
+    @refreshStat(delta)
     @refreshCars()
     for id, intersection of @intersections.all()
       intersection.controlSignals.onTick delta
@@ -156,6 +232,40 @@ class World
       car.move delta
       car.avgSpeed = car.speed    #recount avg_speed
       @removeCar car unless car.alive
+    #
+    #console.log(@time + ' ' + delta)
+    #for id, t of @intersectionAvgWaitingTime
+    #  if t > 0
+    #    console.log(id + ' ' + t)
+    #console.log (' ')
+
+  refreshStat: (delta) ->
+    for id, intersection of @intersections.all()
+      @intersectionsStat[id] = 0
+    for id, car of @cars.all()
+      if car.trajectory.isChangingLanes == false
+        newTarget = car.trajectory.nextIntersection.id
+        oldTarget = @carsCurTarget[id]
+
+        @intersectionsStat[newTarget] += 1
+
+        s = Math.round(car.speed*10)/10
+        # is s = 0 => car has stopped
+        if s == 0
+          @carStoped[id] = true
+        # car is waiting in lane before intersection
+        if @carStoped[id] == true
+          @carsWaitTime[id] += delta
+
+        if oldTarget != newTarget
+          @intersectionTotalNumberOfCars[oldTarget] += 1.0
+          n = @intersectionTotalNumberOfCars[oldTarget]
+          @intersectionAvgWaitingTime[oldTarget] = 1.0 / n * (@carsWaitTime[id] + (n-1) * @intersectionAvgWaitingTime[oldTarget])
+
+          @carsWaitTime[id] = 0.0
+          @carsCurTarget[id] = newTarget
+          @carStoped[id] = false
+
 
   refreshCars: ->
     @addRandomCar() if @cars.length < @carsNumber
@@ -177,6 +287,9 @@ class World
 
   addCar: (car) ->
     @cars.put car
+    @carsWaitTime[car.id] = 0
+    @carStoped[car.id] = false
+    @carsCurTarget[car.id] = car.trajectory.nextIntersection.id
 
   getCar: (id) ->
     @cars.get(id)
@@ -188,12 +301,23 @@ class World
 
   addIntersection: (intersection) ->
     @intersections.put intersection
+    #
+    @intersectionTotalNumberOfCars[intersection.id] = 0.0
+    @intersectionAvgWaitingTime[intersection.id] = 0.0
+    @initStat()
+
 
   getIntersection: (id) ->
     @intersections.get id
 
   addRandomCar: ->
-    road = _.sample @roads.all()
+    # road = _.sample @roads.all()
+    x = _.sample _.range(@carsNumber + 1)
+    k = _.sortedIndex @F, x
+    good_intersection = @getIntersection(@prob[k][1])
+    #good_intersection = _.sample( @goodIntersections )
+
+    road = _.sample( good_intersection.roads )
     if road?
       lane = _.sample road.lanes
       @addCar new Car lane if lane?

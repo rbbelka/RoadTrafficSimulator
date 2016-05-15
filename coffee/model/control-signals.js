@@ -19,6 +19,7 @@
       this.phaseOffset = 100 * random();
       this.time = this.phaseOffset;
       this.stateNum = 0;
+      this.delayMultiplier = [1, 1, 1, 1];
     }
 
     ControlSignals.copy = function(controlSignals, intersection) {
@@ -31,6 +32,7 @@
       result.time = result.phaseOffset = controlSignals.phaseOffset;
       result.stateNum = 0;
       result.intersection = intersection;
+      result.delayMultiplier = controlSignals.delayMultiplier;
       return result;
     };
 
@@ -38,7 +40,8 @@
       var obj;
       return obj = {
         flipMultiplier: this.flipMultiplier,
-        phaseOffset: this.phaseOffset
+        phaseOffset: this.phaseOffset,
+        delayMultiplier: this.delayMultiplier
       };
     };
 
@@ -53,7 +56,7 @@
 
     ControlSignals.property('flipInterval', {
       get: function() {
-        return this.flipMultiplier * settings.lightsFlipInterval;
+        return (0.1 + 0.05 * this.flipMultiplier) * settings.lightsFlipInterval * this.delayMultiplier[this.stateNum % this.states.length];
       }
     });
 
@@ -95,8 +98,8 @@
     ControlSignals.prototype.onTick = function(delta) {
       this.time += delta;
       if (this.time > this.flipInterval) {
-        this.flip();
-        return this.time -= this.flipInterval;
+        this.time -= this.flipInterval;
+        return this.flip();
       }
     };
 

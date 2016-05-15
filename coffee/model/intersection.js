@@ -18,6 +18,7 @@
       this.roads = [];
       this.inRoads = [];
       this.controlSignals = new ControlSignals(this);
+      this.lambda = 0;
     }
 
     Intersection.copy = function(intersection) {
@@ -36,7 +37,8 @@
       return obj = {
         id: this.id,
         rect: this.rect,
-        controlSignals: this.controlSignals
+        controlSignals: this.controlSignals,
+        lambda: this.lambda
       };
     };
 

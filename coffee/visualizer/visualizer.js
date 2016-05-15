@@ -67,7 +67,7 @@
     };
 
     Visualizer.prototype.drawSignals = function(road) {
-      var center, flipInterval, intersection, lights, lightsColors, phaseOffset, segment, sideId;
+      var avgWaitingTime, center, flipInterval, intersection, lambda, lights, lightsColors, numOfCars, phaseOffset, segment, sideId, totalNumOfCars;
       lightsColors = [settings.colors.redLight, settings.colors.greenLight];
       intersection = road.target;
       segment = road.targetSide;
@@ -97,7 +97,15 @@
         center = intersection.rect.center();
         flipInterval = Math.round(intersection.controlSignals.flipInterval * 100) / 100;
         phaseOffset = Math.round(intersection.controlSignals.phaseOffset * 100) / 100;
-        this.ctx.fillText(flipInterval + ' ' + phaseOffset, center.x, center.y);
+        numOfCars = this.world.intersectionsStat[intersection.id];
+        totalNumOfCars = this.world.intersectionTotalNumberOfCars[intersection.id];
+        avgWaitingTime = Math.round(this.world.intersectionAvgWaitingTime[intersection.id] * 100) / 100;
+        lambda = intersection.lambda;
+        this.ctx.fillText(numOfCars, center.x, center.y);
+        this.ctx.fillText(totalNumOfCars, center.x, center.y + 1);
+        this.ctx.fillText(avgWaitingTime, center.x, center.y + 2);
+        this.ctx.fillText(lambda, center.x, center.y + 3);
+        this.ctx.fillText(intersection.id, center.x, center.y - 1);
         return this.ctx.restore();
       }
     };
@@ -136,7 +144,7 @@
     };
 
     Visualizer.prototype.drawCar = function(car) {
-      var angle, boundRect, center, curve, l, rect, ref, style;
+      var angle, boundRect, center, curve, l, rect, ref, s, style, wt;
       angle = car.direction;
       center = car.coords;
       rect = new Rect(0, 0, 1.1 * car.length, 1.7 * car.width);
@@ -151,10 +159,18 @@
       this.graphics.fillRect(boundRect, style);
       this.graphics.restore();
       if (this.debug) {
+        s = Math.round(car.speed * 10) / 10;
+        wt = Math.round(this.world.carsWaitTime[car.id] * 100) / 100;
         this.ctx.save();
         this.ctx.fillStyle = "black";
         this.ctx.font = "1px Arial";
-        this.ctx.fillText(car.id, center.x, center.y);
+        this.ctx.fillText(s, center.x, center.y);
+        this.ctx.fillText(wt, center.x, center.y + 1);
+        if (car.trajectory.current.lane.isLeftmost) {
+          this.ctx.fillText('L', center.x, center.y + 2);
+        } else {
+          this.ctx.fillText('R', center.x, center.y + 2);
+        }
         if ((curve = (ref = car.trajectory.temp) != null ? ref.lane : void 0) != null) {
           this.graphics.drawCurve(curve, 0.1, 'red');
         }
