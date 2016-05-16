@@ -6,7 +6,7 @@ settings = require '../settings'
 
 class ControlSignals
   constructor: (@intersection) ->
-    @flipMultiplier = random()
+    @flipMultiplier = 0.5 # random()
     @phaseOffset = 100 * random()
     @time = @phaseOffset
     @stateNum = 0
