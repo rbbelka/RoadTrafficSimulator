@@ -1,0 +1,296 @@
+{
+  "carsNumber": 100,
+  "intersections": {
+    "intersection1": {
+      "controlSignals": {
+        "delayMultiplier": [1, 1, 1, 1],
+        "flipMultiplier": 1,
+        "phaseOffset": 0
+      },
+      "id": "intersection1",
+      "rect": {
+        "_height": 14,
+        "_width": 14,
+        "x": -70,
+        "y": 70
+      }
+    },
+    "intersection2": {
+      "controlSignals": {
+        "delayMultiplier": [1, 1, 1, 1],
+        "flipMultiplier": 1,
+        "phaseOffset": 0
+      },
+      "id": "intersection2",
+      "rect": {
+        "_height": 14,
+        "_width": 14,
+        "x": 0,
+        "y": 70
+      }
+    },
+    "intersection3": {
+      "controlSignals": {
+        "delayMultiplier": [1, 1, 1, 1],
+        "flipMultiplier": 1,
+        "phaseOffset": 0
+      },
+      "id": "intersection3",
+      "rect": {
+        "_height": 14,
+        "_width": 14,
+        "x": 70,
+        "y": 70
+      }
+    },
+    "intersection4": {
+      "controlSignals": {
+        "delayMultiplier": [1, 1, 1, 1],
+        "flipMultiplier": 1,
+        "phaseOffset": 0
+      },
+      "id": "intersection4",
+      "rect": {
+        "_height": 14,
+        "_width": 14,
+        "x": 140,
+        "y": 70
+      }
+    },
+    "intersection5": {
+      "controlSignals": {
+        "delayMultiplier": [1, 1, 1, 1],
+        "flipMultiplier": 1,
+        "phaseOffset": 0
+      },
+      "id": "intersection5",
+      "rect": {
+        "_height": 14,
+        "_width": 14,
+        "x": -70,
+        "y": 0
+      }
+    },
+    "intersection6": {
+      "controlSignals": {
+        "delayMultiplier": [1, 1, 1, 1],
+        "flipMultiplier": 1,
+        "phaseOffset": 0
+      },
+      "id": "intersection6",
+      "rect": {
+        "_height": 14,
+        "_width": 14,
+        "x": 0,
+        "y": 0
+      }
+    },
+    "intersection7": {
+      "controlSignals": {
+        "delayMultiplier": [1, 1, 1, 1],
+        "flipMultiplier": 1,
+        "phaseOffset": 0
+      },
+      "id": "intersection7",
+      "rect": {
+        "_height": 14,
+        "_width": 14,
+        "x": 70,
+        "y": 0
+      }
+    },
+    "intersection8": {
+      "controlSignals": {
+        "delayMultiplier": [1, 1, 1, 1],
+        "flipMultiplier": 1,
+        "phaseOffset": 0
+      },
+      "id": "intersection8",
+      "rect": {
+        "_height": 14,
+        "_width": 14,
+        "x": 140,
+        "y": 0
+      }
+    },
+    "intersection9": {
+      "controlSignals": {
+        "delayMultiplier": [1, 1, 1, 1],
+        "flipMultiplier": 1,
+        "phaseOffset": 0
+      },
+      "id": "intersection9",
+      "rect": {
+        "_height": 14,
+        "_width": 14,
+        "x": 0,
+        "y": 140
+      }
+    },
+    "intersection10": {
+      "controlSignals": {
+        "delayMultiplier": [1, 1, 1, 1],
+        "flipMultiplier": 1,
+        "phaseOffset": 0
+      },
+      "id": "intersection10",
+      "rect": {
+        "_height": 14,
+        "_width": 14,
+        "x": 70,
+        "y": 140
+      }
+    },
+    "intersection11": {
+      "controlSignals": {
+        "delayMultiplier": [1, 1, 1, 1],
+        "flipMultiplier": 1,
+        "phaseOffset": 0
+      },
+      "id": "intersection11",
+      "rect": {
+        "_height": 14,
+        "_width": 14,
+        "x": 0,
+        "y": -70
+      }
+    },
+    "intersection12": {
+      "controlSignals": {
+        "delayMultiplier": [1, 1, 1, 1],
+        "flipMultiplier": 1,
+        "phaseOffset": 0
+      },
+      "id": "intersection12",
+      "rect": {
+        "_height": 14,
+        "_width": 14,
+        "x": 70,
+        "y": -70
+      }
+    }
+  },
+  "roads": {
+    "road12": {
+      "id": "road12",
+      "source": "intersection1",
+      "target": "intersection2"
+    },
+    "road21": {
+      "id": "road21",
+      "source": "intersection2",
+      "target": "intersection1"
+    },
+    "road23": {
+      "id": "road23",
+      "source": "intersection2",
+      "target": "intersection3"
+    },
+    "road32": {
+      "id": "road32",
+      "source": "intersection3",
+      "target": "intersection2"
+    },
+    "road34": {
+      "id": "road34",
+      "source": "intersection3",
+      "target": "intersection4"
+    },
+    "road43": {
+      "id": "road43",
+      "source": "intersection4",
+      "target": "intersection3"
+    },
+    "road56": {
+      "id": "road56",
+      "source": "intersection5",
+      "target": "intersection6"
+    },
+    "road65": {
+      "id": "road65",
+      "source": "intersection6",
+      "target": "intersection5"
+    },
+    "road67": {
+      "id": "road67",
+      "source": "intersection6",
+      "target": "intersection7"
+    },
+    "road76": {
+      "id": "road76",
+      "source": "intersection7",
+      "target": "intersection6"
+    },
+    "road78": {
+      "id": "road78",
+      "source": "intersection7",
+      "target": "intersection8"
+    },
+    "road87": {
+      "id": "road87",
+      "source": "intersection8",
+      "target": "intersection7"
+    },
+    "road92": {
+      "id": "road92",
+      "source": "intersection9",
+      "target": "intersection2"
+    },
+    "road29": {
+      "id": "road29",
+      "source": "intersection2",
+      "target": "intersection9"
+    },
+    "road26": {
+      "id": "road26",
+      "source": "intersection2",
+      "target": "intersection6"
+    },
+    "road62": {
+      "id": "road62",
+      "source": "intersection6",
+      "target": "intersection2"
+    },
+    "road611": {
+      "id": "road611",
+      "source": "intersection6",
+      "target": "intersection11"
+    },
+    "road116": {
+      "id": "road116",
+      "source": "intersection11",
+      "target": "intersection6"
+    },
+    "road103": {
+      "id": "road103",
+      "source": "intersection10",
+      "target": "intersection3"
+    },
+    "road310": {
+      "id": "road310",
+      "source": "intersection3",
+      "target": "intersection10"
+    },
+    "road37": {
+      "id": "road37",
+      "source": "intersection3",
+      "target": "intersection7"
+    },
+    "road73": {
+      "id": "road73",
+      "source": "intersection7",
+      "target": "intersection3"
+    },
+    "road712": {
+      "id": "road712",
+      "source": "intersection7",
+      "target": "intersection12"
+    },
+    "road127": {
+      "id": "road127",
+      "source": "intersection12",
+      "target": "intersection7"
+    }
+  },
+  "time": 2.85618499998236
+}

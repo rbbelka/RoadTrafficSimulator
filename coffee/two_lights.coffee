@@ -11,7 +11,7 @@ fs = require 'fs'
 
 avgInstantSpeed = (setupCallback) ->
   world = new World()
-  map = fs.readFileSync './experiments/map2l.json', {encoding: 'utf8'}
+  map = fs.readFileSync './experiments/map2.json', {encoding: 'utf8'}
   world.load map
 #  world.generateMap()
   world.carsNumber = 400
@@ -24,7 +24,7 @@ avgInstantSpeed = (setupCallback) ->
 
 avgCarSpeed = (setupCallback) ->
   world = new World()
-  map = fs.readFileSync './experiments/map2l.json', {encoding: 'utf8'}
+  map = fs.readFileSync './experiments/map2.json', {encoding: 'utf8'}
   world.load map
 #  world.generateMap()
   world.carsNumber = 100
@@ -48,14 +48,11 @@ avgSpeed = (setupCallback) ->
 
 avgSpeed0 = () ->
   world = new World()
-  #  world.generateMap8()
-  map = fs.readFileSync '../experiments/map2.json', {encoding: 'utf8'}
+  map = fs.readFileSync '../experiments/map4.json', {encoding: 'utf8'}
   world.load map
   world.carsNumber = 50
-  results = []
-  for i in [0..2000]
+  for i in [0..3000]
     world.onTick 0.2
-    results.push world.instantSpeed
   return world.avgCarsSpeed
 
 getParams = (world) ->
@@ -63,7 +60,7 @@ getParams = (world) ->
   # console.log JSON.stringify(params)
   params
 
-settings.lightsFlipInterval = 200
+settings.lightsFlipInterval = 400
 
 experiment0 = () ->
   out = fs.createWriteStream '../experiments/0.data'
@@ -72,7 +69,6 @@ experiment0 = () ->
   out.write(result + ' ');
 
 experiment0()
-
 
 
 experiment = () ->
