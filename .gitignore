@@ -1,3 +1,7 @@
 /node_modules
 npm-debug.log
 /experiments
+/coffee/two_lights.js.map
+/coffee/two_lights.js
+/coffee/model/control-signals.js.map
+/coffee/model/control-signals.js

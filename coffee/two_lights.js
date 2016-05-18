@@ -104,7 +104,7 @@
         return getParams(world);
       });
       console.log(it);
-      out.write('"' + (it + 1) + '" ' + (x * settings.lightsFlipInterval) + ' ' + result[0] + ' ' + result[1] + '\n');
+      out.write('"' + (it + 1) + '" ' + ((0.1 + 0.05 * x) * settings.lightsFlipInterval) + ' ' + result[0] + ' ' + result[1] + '\n');
       if (result[0] > result_max1) {
         x_max1 = x;
         result_max1 = result[0];
@@ -114,8 +114,8 @@
         result_max2 = result[1];
       }
     }
-    out.write('max1: ' + (x_max1 * settings.lightsFlipInterval) + ' ' + result_max1 + ' ' + 0 + '\n');
-    return out.write('max2: ' + (x_max2 * settings.lightsFlipInterval) + ' ' + 0 + ' ' + result_max2 + '\n');
+    out.write('max1: ' + ((0.1 + 0.05 * x_max1) * settings.lightsFlipInterval) + ' ' + result_max1 + ' ' + 0 + '\n');
+    return out.write('max2: ' + ((0.1 + 0.05 * x_max2) * settings.lightsFlipInterval) + ' ' + 0 + ' ' + result_max2 + '\n');
   };
 
   experiment();

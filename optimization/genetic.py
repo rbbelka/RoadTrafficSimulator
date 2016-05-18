@@ -6,36 +6,32 @@ from pprint import pprint
 from pyevolve import *
 import pyevolve
 
-wi = ['intersection153', 'intersection154']
+wi = ['intersection206', 'intersection207']
 T = 3.0
 B = 0.1
 
 def run_experiment(delays):
-  # dirty hack
-  for d in delays:
-    if d < B or d > T:
-      return 100000
-  #
+
   data = None
   i = 0
   print(delays)
   # load data and create new configuration
-  with open('../experiments/map.copy.json', 'r') as data_file:    
+  with open('../experiments/map2.json', 'r') as data_file:
     data = json.load(data_file)
     for intersection in wi:
       for j in range(4):
 	data["intersections"][intersection]["controlSignals"]["delayMultiplier"][j] = delays[i]
 	i += 1
   # save new configuration
-  with open('../experiments/map.copy.json', 'w') as data_file:
+  with open('../experiments/map2.json', 'w') as data_file:
     json.dump(data, data_file)
   # run experiment
-  os.system('coffee ../coffee/runner.coffee')
+  os.system('coffee ../coffee/two_lights.coffee')
   # load experiment's result
   res = 0
   with open('../experiments/0.data', 'r') as data_file:  
     res = [float(x) for x in next(data_file).split()][0]
-  return 1000.0-res
+  return res
   
 
 def GA():
@@ -65,6 +61,7 @@ def GA():
 def main():
   np.random.seed(555)   # Seeded to allow replication.
   GA()
+#  run_experiment([1,1,1,1,1,1,1,1])
 
 if __name__ == "__main__":
     main()

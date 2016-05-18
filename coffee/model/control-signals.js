@@ -15,7 +15,7 @@
     function ControlSignals(intersection1) {
       this.intersection = intersection1;
       this.onTick = bind(this.onTick, this);
-      this.flipMultiplier = random();
+      this.flipMultiplier = 0.5;
       this.phaseOffset = 100 * random();
       this.time = this.phaseOffset;
       this.stateNum = 0;
