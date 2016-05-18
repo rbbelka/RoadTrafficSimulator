@@ -41,9 +41,9 @@ avgSpeed = (setupCallback) ->
   world.carsNumber = 50
   setupCallback?(world)
   results = []
-  for i in [0..2000]
+  for i in [0..3000]
     world.onTick 0.2
-    results.push world.instantSpeed
+    results.push world.instantSpeg  ed
   return [(results.reduce (a, b) -> a + b) / results.length, world.avgCarsSpeed]
 
 avgSpeed0 = () ->

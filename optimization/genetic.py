@@ -10,8 +10,8 @@ wi = ['intersection206', 'intersection207']
 T = 3.0
 B = 0.1
 
-def run_experiment(delays):
 
+def run_experiment(delays):
   data = None
   i = 0
   print(delays)
@@ -31,8 +31,12 @@ def run_experiment(delays):
   res = 0
   with open('../experiments/0.data', 'r') as data_file:  
     res = [float(x) for x in next(data_file).split()][0]
+  with open('../experiments/gen/res0.data', 'a') as res_file:
+    for j in range(8):
+        res_file.write(str(delays[j]) + ' ')
+    res_file.write(str(res) + '\n')
   return res
-  
+
 
 def GA():
   # Genome instance
@@ -61,7 +65,6 @@ def GA():
 def main():
   np.random.seed(555)   # Seeded to allow replication.
   GA()
-#  run_experiment([1,1,1,1,1,1,1,1])
 
 if __name__ == "__main__":
     main()
