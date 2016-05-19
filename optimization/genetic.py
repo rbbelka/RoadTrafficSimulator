@@ -7,7 +7,7 @@ from pyevolve import *
 import pyevolve
 
 wi = ['intersection2', 'intersection3','intersection6', 'intersection7']
-T = 5.0
+T = 3.0
 B = 0.1
 
 
@@ -49,12 +49,12 @@ def GA():
   genome.mutator.set(Mutators.G1DListMutatorRealGaussian)
   genome.crossover.set(Crossovers.G1DListCrossoverSinglePoint)
   genome.initializator.set(Initializators.G1DListInitializatorReal)
-  
+
   ga = GSimpleGA.GSimpleGA(genome)
   ga.selector.set(Selectors.GRouletteWheel)
-  
+  ga.setMutationRate(0.05)
   ga.setPopulationSize(10)
-  ga.setGenerations(50)
+  ga.setGenerations(30)
   # Do the evolution, with stats dump
   # frequency of 10 generations
   

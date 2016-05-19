@@ -29,8 +29,8 @@ avgCarSpeed = (setupCallback) ->
 #  world.generateMap()
   world.carsNumber = 100
   setupCallback?(world)
-  for i in [0..3000]
-    world.onTick 0.2
+  for i in [0..5000]
+    world.onTick 0.1
   world.avgCarsSpeed
 
 avgSpeed = (setupCallback) ->
@@ -42,15 +42,15 @@ avgSpeed = (setupCallback) ->
   setupCallback?(world)
   results = []
   for i in [0..3000]
-    world.onTick 0.2
-    results.push world.instantSpeg  ed
+    world.onTick 0.4
+    results.push world.instantSpeed
   return [(results.reduce (a, b) -> a + b) / results.length, world.avgCarsSpeed]
 
 avgSpeed0 = () ->
   world = new World()
-  map = fs.readFileSync '../experiments/map4.json', {encoding: 'utf8'}
+  map = fs.readFileSync './experiments/map4.json', {encoding: 'utf8'}
   world.load map
-  world.carsNumber = 50
+  console.log(world.intersections['intersection1'])
   for i in [0..3000]
     world.onTick 0.2
   return world.avgCarsSpeed
@@ -60,10 +60,10 @@ getParams = (world) ->
   # console.log JSON.stringify(params)
   params
 
-settings.lightsFlipInterval = 400
+# settings.lightsFlipInterval = 400
 
 experiment0 = () ->
-  out = fs.createWriteStream '../experiments/0.data'
+  out = fs.createWriteStream './experiments/0.data'
   result = avgSpeed0()
   console.log result
   out.write(result + ' ');
@@ -72,6 +72,26 @@ experiment0()
 
 
 experiment = () ->
+  out = fs.createWriteStream './experiments/random.data'
+  out.write '"flipMult" "avgSpeed"\n'
+  x_max = []
+  result_max = -1
+  for it in [0..60]
+    x = random()
+    result = avgInstantSpeed (world) ->
+      i.controlSignals.flipMultiplier = x for id, i of world.intersections.all()
+      getParams world
+    out.write('"'+ (it+1) + '" ' + ((0.1 + 0.05 * x) * settings.lightsFlipInterval) + ' ' +  result + '\n')
+    if result > result_max
+      x_max = x
+      result_max = result
+  out.write('max: ' + ((0.1 + 0.05 * x_max) * settings.lightsFlipInterval) + ' ' +  result_max + '\n')
+
+
+# experiment()
+
+
+experiment3 = () ->
   out = fs.createWriteStream '../experiments/0.data'
   out.write '"flipMult" "avgInstantSpeed" "avgCarSpeed"\n'
   x_max1 = -1
@@ -95,7 +115,7 @@ experiment = () ->
   out.write('max2: ' + ((0.1 + 0.05 * x_max2 ) * settings.lightsFlipInterval) + ' ' + 0 + ' ' +  result_max2 + '\n')
 
 
-#experiment()
+# experiment3()
 
 
 experiment4 = () ->

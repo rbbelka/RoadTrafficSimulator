@@ -44,7 +44,7 @@ class ControlSignals
 
     # get: ->  @flipMultiplier * settings.lightsFlipInterval
     # get: -> (0.1 + 0.05 * @flipMultiplier) * settings.lightsFlipInterval
-    get: -> (0.1 + 0.05 * @flipMultiplier) * settings.lightsFlipInterval * @delayMultiplier[@stateNum % @states.length]
+    get: -> 0.125 * settings.lightsFlipInterval * @delayMultiplier[@stateNum % @states.length]
 
 
   _decode: (str) ->

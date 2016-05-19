@@ -13,7 +13,8 @@
         "_width": 14,
         "x": -70,
         "y": 70
-      }
+      },
+      "lambda": 10
     },
     "intersection2": {
       "controlSignals": {
@@ -27,7 +28,8 @@
         "_width": 14,
         "x": 0,
         "y": 70
-      }
+      },
+      "lambda": 0
     },
     "intersection3": {
       "controlSignals": {
@@ -41,7 +43,8 @@
         "_width": 14,
         "x": 70,
         "y": 70
-      }
+      },
+      "lambda": 0
     },
     "intersection4": {
       "controlSignals": {
@@ -55,7 +58,8 @@
         "_width": 14,
         "x": 140,
         "y": 70
-      }
+      },
+      "lambda": 10
     },
     "intersection5": {
       "controlSignals": {
@@ -69,7 +73,8 @@
         "_width": 14,
         "x": -70,
         "y": 0
-      }
+      },
+      "lambda": 10
     },
     "intersection6": {
       "controlSignals": {
@@ -83,7 +88,8 @@
         "_width": 14,
         "x": 0,
         "y": 0
-      }
+      },
+      "lambda": 0
     },
     "intersection7": {
       "controlSignals": {
@@ -97,7 +103,8 @@
         "_width": 14,
         "x": 70,
         "y": 0
-      }
+      },
+      "lambda": 0
     },
     "intersection8": {
       "controlSignals": {
@@ -111,7 +118,8 @@
         "_width": 14,
         "x": 140,
         "y": 0
-      }
+      },
+      "lambda": 10
     },
     "intersection9": {
       "controlSignals": {
@@ -125,7 +133,8 @@
         "_width": 14,
         "x": 0,
         "y": 140
-      }
+      },
+      "lambda": 10
     },
     "intersection10": {
       "controlSignals": {
@@ -139,7 +148,8 @@
         "_width": 14,
         "x": 70,
         "y": 140
-      }
+      },
+      "lambda": 10
     },
     "intersection11": {
       "controlSignals": {
@@ -153,7 +163,8 @@
         "_width": 14,
         "x": 0,
         "y": -70
-      }
+      },
+      "lambda": 10
     },
     "intersection12": {
       "controlSignals": {
@@ -167,7 +178,8 @@
         "_width": 14,
         "x": 70,
         "y": -70
-      }
+      },
+      "lambda": 10
     }
   },
   "roads": {
