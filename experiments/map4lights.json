@@ -1,5 +1,5 @@
 {
-  "carsNumber": 100,
+  "carsNumber": 50,
   "intersections": {
     "intersection1": {
       "controlSignals": {

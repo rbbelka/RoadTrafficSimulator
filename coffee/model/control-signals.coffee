@@ -6,7 +6,7 @@ settings = require '../settings'
 
 class ControlSignals
   constructor: (@intersection) ->
-    @flipMultiplier = 0.5 # random()
+    @flipMultiplier = 1 # random()
     @phaseOffset = 100 * random()
     @time = @phaseOffset
     @stateNum = 0
@@ -42,9 +42,9 @@ class ControlSignals
 
   @property 'flipInterval',
 
-    # get: ->  @flipMultiplier * settings.lightsFlipInterval
+    get: ->  @flipMultiplier * settings.lightsFlipInterval * 0.125
     # get: -> (0.1 + 0.05 * @flipMultiplier) * settings.lightsFlipInterval
-    get: -> 0.125 * settings.lightsFlipInterval * @delayMultiplier[@stateNum % @states.length]
+    # get: -> 0.125 * settings.lightsFlipInterval * @delayMultiplier[@stateNum % @states.length]
 
 
   _decode: (str) ->
